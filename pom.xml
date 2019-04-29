@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
-	<modelVersion>4.0.0</modelVersion>
+<modelVersion>4.0.0</modelVersion>
 
 	<parent>
 		<groupId>org.scijava</groupId>
@@ -9,10 +9,10 @@
 	</parent>
 
 	<groupId>de.embl.cba</groupId>
-	<artifactId>XXX</artifactId>
-	<version>0.1.0</version>
+	<artifactId>imglib2-splines</artifactId>
+	<version>0.1.00</version>
 
-	<name>XXX</name>
+	<name>imglib2-splines</name>
 	<description>TODO</description>
 	<inceptionYear>2018</inceptionYear>
 	<organization>
@@ -54,14 +54,14 @@
 	</mailingLists>
 	
 	<scm>
-		<connection>scm:git:git://github.com/tischi/XXX</connection>
-		<developerConnection>scm:git:git@github.com/tischi/XXX</developerConnection>
+		<connection>scm:git:git://github.com/tischi/imglib2-splines</connection>
+		<developerConnection>scm:git:git@github.com/tischi/imglib2-splines</developerConnection>
 		<tag>HEAD</tag>
-		<url>https://github.com/tischi/XXX</url>
+		<url>https://github.com/tischi/imglib2-splines</url>
 	</scm>
 	<issueManagement>
 		<system>GitHub</system>
-		<url>https://github.com/tischi/XXX/issues</url>
+		<url>https://github.com/tischi/imglib2-splines/issues</url>
 	</issueManagement>
 	
 	<ciManagement>
@@ -69,7 +69,7 @@
 	</ciManagement>
 
 	<properties>
-		<package-name>de.embl.cba</package-name>
+		<package-name>de.embl.cba.splines</package-name>
 		<license.licenseName>bsd_2</license.licenseName>
 		<license.copyrightOwners>EMBL</license.copyrightOwners>
 		<imagej.app.directory>/Applications/Fiji.app/</imagej.app.directory>
