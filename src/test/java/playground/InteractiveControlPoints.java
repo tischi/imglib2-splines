@@ -6,6 +6,6 @@ public class InteractiveControlPoints
 {
 	public static void main( String[] args )
 	{
-		new TransformedBoxOverlay( final TransformedBox bbSource )
+//		new TransformedBoxOverlay( final TransformedBox bbSource )
 	}
 }
