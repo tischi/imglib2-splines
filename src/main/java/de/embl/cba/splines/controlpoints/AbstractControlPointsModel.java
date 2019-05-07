@@ -30,25 +30,29 @@
 package de.embl.cba.splines.controlpoints;
 
 import bdv.tools.boundingbox.TransformedBox;
+import net.imglib2.Point;
 import net.imglib2.RealInterval;
+import net.imglib2.RealPoint;
 import net.imglib2.realtransform.AffineTransform3D;
 import org.scijava.listeners.Listeners;
 
+import java.util.List;
+
 /**
- * A transformed box that can be modified and notifies listeners about changes.
- * Represented as an interval (defined in subclasses) that is placed into
+ * Controls points that can be modified and notify listeners about changes.
+ * Represented as a list of points (defined in subclasses) that is placed into
  * global coordinate system by an {@code AffineTransform3D}.
  */
-public abstract class AbstractControlPointsModel implements TransformedBox
+public abstract class AbstractControlPointsModel implements ControlPoints
 {
-	public interface IntervalChangedListener
+	public interface PointsChangedListener
 	{
-		void intervalChanged();
+		void pointsChanged();
 	}
 
-	private final AffineTransform3D transform;
+	private final AffineTransform3D transform; // TODO: do we really need
 
-	private final Listeners.List< IntervalChangedListener > listeners;
+	private final Listeners.List< PointsChangedListener > listeners;
 
 	public AbstractControlPointsModel( final AffineTransform3D transform )
 	{
@@ -62,15 +66,15 @@ public abstract class AbstractControlPointsModel implements TransformedBox
 		t.set( transform );
 	}
 
-	public Listeners< IntervalChangedListener > intervalChangedListeners()
+	public Listeners< PointsChangedListener > pointsChangedListeners()
 	{
 		return listeners;
 	}
 
-	public abstract void setInterval( RealInterval interval );
+	public abstract void setPoints( List< RealPoint > points );
 
-	protected void notifyIntervalChanged()
+	protected void notifyPointsChanged()
 	{
-		listeners.list.forEach( IntervalChangedListener::intervalChanged );
+		listeners.list.forEach( PointsChangedListener::pointsChanged );
 	}
 }

@@ -1,9 +1,6 @@
 package de.embl.cba.splines.controlpoints;
 
-import bdv.tools.boundingbox.RenderBoxHelper;
 import bdv.tools.boundingbox.TransformedBox;
-import net.imglib2.Interval;
-import net.imglib2.RealInterval;
 import net.imglib2.realtransform.AffineTransform3D;
 import net.imglib2.ui.OverlayRenderer;
 import net.imglib2.ui.TransformListener;
@@ -25,6 +22,7 @@ public class ControlPointsOverlay implements OverlayRenderer, TransformListener<
 	private static final double DISTANCE_TOLERANCE = 20.;
 
 	private static final double HANDLE_RADIUS = DISTANCE_TOLERANCE / 2.;
+	private final ControlPoints controlPoints;
 
 	/**
 	 * Specifies whether to show 3D wireframe box ({@code FULL}), or only
@@ -56,9 +54,9 @@ public class ControlPointsOverlay implements OverlayRenderer, TransformListener<
 
 	private final AffineTransform3D transform;
 
-	final RenderBoxHelper renderBoxHelper;
+	final RenderPointsHelper renderPointsHelper;
 
-	private final CornerHighlighter cornerHighlighter;
+	private final PointsHighlighter pointsHighlighter;
 
 	private double sourceSize = 5000;
 
@@ -78,32 +76,14 @@ public class ControlPointsOverlay implements OverlayRenderer, TransformListener<
 
 	private bdv.tools.boundingbox.TransformedBoxOverlay.HighlightedCornerListener highlightedCornerListener;
 
-	public TransformedBoxOverlay( final Interval interval )
+	public ControlPointsOverlay( final ControlPoints controlPoints )
 	{
-		this( new TransformedBox()
-		{
-			@Override
-			public Interval getInterval()
-			{
-				return interval;
-			}
-
-			@Override
-			public void getTransform( final AffineTransform3D transform )
-			{
-				transform.identity();
-			}
-		} );
-	}
-
-	public TransformedBoxOverlay( final TransformedBox bbSource )
-	{
-		this.bbSource = bbSource;
+		this.controlPoints = controlPoints;
 
 		viewerTransform = new AffineTransform3D();
 		transform = new AffineTransform3D();
-		renderBoxHelper = new RenderBoxHelper();
-		cornerHighlighter = new bdv.tools.boundingbox.TransformedBoxOverlay.CornerHighlighter( DISTANCE_TOLERANCE );
+		renderPointsHelper = new RenderPointsHelper();
+		pointsHighlighter = new PointsHighlighter( DISTANCE_TOLERANCE );
 	}
 
 	/**
@@ -147,19 +127,19 @@ public class ControlPointsOverlay implements OverlayRenderer, TransformListener<
 		final GeneralPath back = new GeneralPath();
 		final GeneralPath intersection = new GeneralPath();
 
-		final RealInterval interval = bbSource.getInterval();
 		final double ox = canvasWidth / 2;
 		final double oy = canvasHeight / 2;
+
 		synchronized ( viewerTransform )
 		{
-			bbSource.getTransform( transform );
 			transform.preConcatenate( viewerTransform );
 		}
-		renderBoxHelper.setPerspectiveProjection( perspective > 0 );
-		renderBoxHelper.setDepth( perspective * sourceSize );
-		renderBoxHelper.setOrigin( ox, oy );
-		renderBoxHelper.setScale( 1 );
-		renderBoxHelper.renderBox( interval, transform, front, back, intersection );
+
+		renderPointsHelper.setPerspectiveProjection( perspective > 0 );
+		renderPointsHelper.setDepth( perspective * sourceSize );
+		renderPointsHelper.setOrigin( ox, oy );
+		renderPointsHelper.setScale( 1 );
+		renderPointsHelper.renderPoints( controlPoints.getPoints(), transform, front, back, intersection );
 
 		graphics.setRenderingHint( RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON );
 
@@ -188,15 +168,15 @@ public class ControlPointsOverlay implements OverlayRenderer, TransformListener<
 
 			if ( showCornerHandles )
 			{
-				final int id = getHighlightedCornerIndex();
+				final int id = getHighlightedPointIndex();
 				if ( id >= 0 )
 				{
-					final double[] p = renderBoxHelper.projectedCorners[ id ];
+					final double[] p = renderPointsHelper.projectedPoints[ id ];
 					final Ellipse2D cornerHandle = new Ellipse2D.Double(
 							p[ 0 ] - HANDLE_RADIUS,
 							p[ 1 ] - HANDLE_RADIUS,
 							2 * HANDLE_RADIUS, 2 * HANDLE_RADIUS );
-					final double z = renderBoxHelper.corners[ cornerId ][ 2 ];
+					final double z = renderPointsHelper.transformedPoints[ cornerId ][ 2 ];
 					final Color cornerColor = ( z > 0 ) ? backColor : frontColor;
 
 					graphics.setColor( cornerColor );
@@ -240,7 +220,7 @@ public class ControlPointsOverlay implements OverlayRenderer, TransformListener<
 	 *
 	 * @param t is set to the box-to-viewer transform.
 	 */
-	public void getBoxToViewerTransform( final AffineTransform3D t )
+	public void getPointsToViewerTransform( final AffineTransform3D t )
 	{
 		synchronized ( viewerTransform ) // not a typo, all transform modifications synchronize on viewerTransform
 		{
@@ -253,7 +233,7 @@ public class ControlPointsOverlay implements OverlayRenderer, TransformListener<
 	 *
 	 * @return corner index or {@code -1} if no corner is highlighted
 	 */
-	public int getHighlightedCornerIndex()
+	public int getHighlightedPointIndex()
 	{
 		return cornerId;
 	}
@@ -268,9 +248,9 @@ public class ControlPointsOverlay implements OverlayRenderer, TransformListener<
 	 * @return a {@code MouseMotionListener} implementing mouse-over for box
 	 *         corners
 	 */
-	public MouseMotionListener getCornerHighlighter()
+	public MouseMotionListener getPointsHighlighter()
 	{
-		return cornerHighlighter;
+		return pointsHighlighter;
 	}
 
 	public void setHighlightedCornerListener( final bdv.tools.boundingbox.TransformedBoxOverlay.HighlightedCornerListener highlightedCornerListener )
@@ -287,8 +267,8 @@ public class ControlPointsOverlay implements OverlayRenderer, TransformListener<
 	private void setHighlightedCorner( final int id )
 	{
 		final int oldId = cornerId;
-		cornerId = ( id >= 0 && id < RenderBoxHelper.numCorners ) ? id : -1;
-		if ( cornerId != oldId && highlightedCornerListener != null && displayMode.get() == FULL )
+		cornerId = ( id >= 0 && id < RenderPointsHelper.numPoints ) ? id : -1;
+		if ( cornerId != oldId && highlightedCornerListener != null )
 			highlightedCornerListener.highlightedCornerChanged();
 	}
 
@@ -304,11 +284,11 @@ public class ControlPointsOverlay implements OverlayRenderer, TransformListener<
 		this.sourceSize = sourceSize;
 	}
 
-	private class CornerHighlighter extends MouseMotionAdapter
+	private class PointsHighlighter extends MouseMotionAdapter
 	{
 		private final double squTolerance;
 
-		CornerHighlighter( final double tolerance )
+		PointsHighlighter( final double tolerance )
 		{
 			squTolerance = tolerance * tolerance;
 		}
@@ -318,11 +298,15 @@ public class ControlPointsOverlay implements OverlayRenderer, TransformListener<
 		{
 			final int x = e.getX();
 			final int y = e.getY();
-			for ( int i = 0; i < RenderBoxHelper.numCorners; i++ )
+
+			// TODO
+			final int numPoints = renderPointsHelper.transformedPoints.length;
+
+			for ( int i = 0; i < numPoints; i++ )
 			{
-				final double[] corner = renderBoxHelper.projectedCorners[ i ];
-				final double dx = x - corner[ 0 ];
-				final double dy = y - corner[ 1 ];
+				final double[] point = renderPointsHelper.projectedPoints[ i ];
+				final double dx = x - point[ 0 ];
+				final double dy = y - point[ 1 ];
 				final double dr2 = dx * dx + dy * dy;
 				if ( dr2 < squTolerance )
 				{

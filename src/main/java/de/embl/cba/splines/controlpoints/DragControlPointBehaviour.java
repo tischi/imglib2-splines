@@ -1,8 +1,8 @@
 package de.embl.cba.splines.controlpoints;
 
-import bdv.tools.boundingbox.AbstractTransformedBoxModel;
 import net.imglib2.FinalRealInterval;
 import net.imglib2.RealInterval;
+import net.imglib2.RealPoint;
 import net.imglib2.realtransform.AffineTransform3D;
 import org.scijava.ui.behaviour.DragBehaviour;
 
@@ -12,7 +12,7 @@ final class DragControlPointBehaviour implements DragBehaviour
 
 	private boolean moving = false;
 
-	private final AbstractTransformedBoxModel model;
+	private final AbstractControlPointsModel model;
 
 	private final double[] initMin = new double[ 3 ];
 
@@ -20,9 +20,10 @@ final class DragControlPointBehaviour implements DragBehaviour
 
 	private final double[] initCorner = new double[ 3 ];
 
-	private int cornerId;
+	private int pointId;
+	private RealPoint realPoint;
 
-	public DragControlPointBehaviour( final ControlPointsOverlay pointsOverlay, final AbstractTransformedBoxModel model )
+	public DragControlPointBehaviour( final ControlPointsOverlay pointsOverlay, final AbstractControlPointsModel model )
 	{
 		this.pointsOverlay = pointsOverlay;
 		this.model = model;
@@ -31,14 +32,11 @@ final class DragControlPointBehaviour implements DragBehaviour
 	@Override
 	public void init( final int x, final int y )
 	{
-		cornerId = pointsOverlay.getHighlightedCornerIndex();
-		if ( cornerId < 0 )
+		pointId = pointsOverlay.getHighlightedPointIndex();
+		if ( pointId < 0 )
 			return;
 
-		final RealInterval interval = model.getInterval();
-		IntervalCorners.corner( interval, cornerId, initCorner );
-		interval.realMin( initMin );
-		interval.realMax( initMax );
+		realPoint = model.getPoints().get( pointId );
 
 		moving = true;
 	}
@@ -51,10 +49,16 @@ final class DragControlPointBehaviour implements DragBehaviour
 		if ( !moving )
 			return;
 
-		pointsOverlay.getBoxToViewerTransform( transform );
+		pointsOverlay.getPointsToViewerTransform( transform );
 		final double[] gPos = new double[ 3 ];
-		transform.apply( initCorner, gPos );
-		final double[] lPos = pointsOverlay.renderBoxHelper.reproject( x, y, gPos[ 2 ] );
+
+		final double[] position = new double[ 3 ];
+		for ( int d = 0; d < 3 ; d++ )
+			position[ d ] = realPoint[ d];
+
+		transform.apply( realPoint, gPos );
+		final double[] lPos = pointsOverlay.renderPointsHelper.reproject( x, y, gPos[ 2 ] );
+
 		transform.applyInverse( gPos, lPos );
 
 		final double[] min = new double[ 3 ];
@@ -62,7 +66,7 @@ final class DragControlPointBehaviour implements DragBehaviour
 		for ( int d = 0; d < 3; ++d )
 		{
 			final double p = gPos[ d ];
-			if ( ( cornerId & ( 1 << d ) ) == 0 )
+			if ( ( pointId & ( 1 << d ) ) == 0 )
 			{
 				min[ d ] = p;
 				max[ d ] = initMax[ d ] = Math.max( initMax[ d ], p );
@@ -74,7 +78,7 @@ final class DragControlPointBehaviour implements DragBehaviour
 			}
 		}
 
-		model.setInterval( new FinalRealInterval( min, max ) );
+		model.getPoints().set( pointId, newPoint );
 	}
 
 	@Override

@@ -2,7 +2,6 @@ package de.embl.cba.splines.controlpoints;
 
 import bdv.tools.boundingbox.AbstractTransformedBoxModel;
 import bdv.tools.boundingbox.TransformedBoxOverlay;
-import bdv.tools.boundingbox.TransformedBoxOverlaySource;
 import bdv.tools.brightness.SetupAssignments;
 import bdv.viewer.ViewerPanel;
 import org.scijava.listeners.ChangeListener;
@@ -54,12 +53,12 @@ public class ControlPointsEditor
 		this( keyconf, viewer, setupAssignments, triggerbindings, model, "selection", bdv.tools.boundingbox.TransformedBoxEditor.BoxSourceType.PLACEHOLDER );
 	}
 
-	public TransformedBoxEditor(
+	public ControlPointsEditor(
 			final InputTriggerConfig keyconf,
 			final ViewerPanel viewer,
 			final SetupAssignments setupAssignments,
 			final TriggerBehaviourBindings triggerbindings,
-			final AbstractTransformedBoxModel model,
+			final AbstractControlPointsModel model,
 			final String boxSourceName,
 			final bdv.tools.boundingbox.TransformedBoxEditor.BoxSourceType boxSourceType )
 	{
@@ -67,9 +66,9 @@ public class ControlPointsEditor
 		this.triggerbindings = triggerbindings;
 
 		/*
-		 * Create an Overlay to show 3D wireframe box
+		 * Create an Overlay to show 3D points
 		 */
-		pointsOverlay = new TransformedBoxOverlay( model );
+		pointsOverlay = new ControlPointsOverlay( model );
 		pointsOverlay.setPerspective( 0 );
 		pointsOverlay.boxDisplayMode().listeners().add( () -> {
 			viewer.requestRepaint();
@@ -77,21 +76,7 @@ public class ControlPointsEditor
 		} );
 
 		/*
-		 * Create a BDV source to show bounding box slice
-		 */
-		switch ( boxSourceType )
-		{
-			case PLACEHOLDER:
-				boxSource = new TransformedBoxOverlaySource( boxSourceName, pointsOverlay, model, viewer, setupAssignments );
-				break;
-			case NONE:
-			default:
-				boxSource = null;
-				break;
-		}
-
-		/*
-		 * Create DragBoxCornerBehaviour
+		 * Create DragPointsBehaviour
 		 */
 
 		behaviours = new Behaviours( keyconf, "bdv" );
@@ -215,7 +200,7 @@ public class ControlPointsEditor
 
 	private void highlightedCornerChanged()
 	{
-		final int index = pointsOverlay.getHighlightedCornerIndex();
+		final int index = pointsOverlay.getHighlightedPointIndex();
 		if ( index < 0 )
 			unblock();
 		else
