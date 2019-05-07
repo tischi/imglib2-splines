@@ -32,7 +32,7 @@ public class PointsDistanceSource extends RealRandomAccessibleSource< DoubleType
 
 		private final List< RealPoint > points;
 
-		public PointsDistanceRealRandomAccessible( final List< RealPoint > points )
+		public PointsDistanceRealRandomAccessible( final List< RealPoint > points)
 		{
 			this.points = points;
 		}
@@ -69,11 +69,17 @@ public class PointsDistanceSource extends RealRandomAccessibleSource< DoubleType
 			@Override
 			public DoubleType get()
 			{
-				double distance = getDoublePosition( 0 ); // TODO
-//				final RealPoint realPoint = points.get( 0 );
-
+				double distance = Double.MAX_VALUE;
+				for (RealPoint p: points){
+					double currDistance=0.0;
+					for(int nn=0; nn<this.numDimensions(); nn++){
+						currDistance+=((getDoublePosition(nn)-p.getDoublePosition(nn))*(getDoublePosition(nn)-p.getDoublePosition(nn)));
+					}
+					currDistance=Math.sqrt(currDistance);
+					if(currDistance<=distance)
+						distance=currDistance;
+				}
 				type.set( distance );
-
 				return type;
 			}
 
