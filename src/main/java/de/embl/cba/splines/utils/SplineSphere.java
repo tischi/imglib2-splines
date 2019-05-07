@@ -98,7 +98,6 @@ public class SplineSphere {
                             tVal = t - (k - M);
                     }
                     if (tVal > -SplineBasis.ESPLINE3SUPPORT/2.0 && tVal < SplineBasis.ESPLINE3SUPPORT/2.0){
-                        for(int n=0; n<)
                         x += controlPoints[k + (l - 1) * M].getDoublePosition(0) * SplineBasis.ESpline3(sVal,PIM) * SplineBasis.ESpline3(tVal,2.0*PIM);
                         y += controlPoints[k + (l - 1) * M].getDoublePosition(1) * SplineBasis.ESpline3(sVal,PIM) * SplineBasis.ESpline3(tVal,2.0*PIM);
                         z += controlPoints[k + (l - 1) * M].getDoublePosition(2) * SplineBasis.ESpline3(sVal,PIM) * SplineBasis.ESpline3(tVal,2.0*PIM);
@@ -262,6 +261,7 @@ public class SplineSphere {
         return new RealPoint(x,y,z);
     }
 
+    /*
     public RealPoint parametersToWorldClean(double t, double s){
         double x = 0.0;
         double y = 0.0;
@@ -444,4 +444,5 @@ public class SplineSphere {
 
         return new RealPoint(x,y,z);
     }
+    */
  }
