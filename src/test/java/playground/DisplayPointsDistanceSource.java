@@ -19,7 +19,6 @@ public class DisplayPointsDistanceSource
 		spline.initializeDefaultShape(interval.dimension(0),interval.dimension(1),interval.dimension(2));
 		//final ArrayList< RealPoint > points = spline.getControlPoints();
 		final ArrayList< RealPoint > points = spline.getSampledSurface();
-		System.out.println(points.size());
 
 		final PointsDistanceSource pointsDistanceSource = new PointsDistanceSource( "distance to points", interval, points );
 		BdvFunctions.show( pointsDistanceSource );
