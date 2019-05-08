@@ -50,7 +50,7 @@ public abstract class AbstractControlPointsModel implements ControlPoints
 		void pointsChanged();
 	}
 
-	private final AffineTransform3D transform; // TODO: do we really need
+	private final AffineTransform3D transform; // TODO: do we really need this? Could be the transform of the image to which the points are attached
 
 	private final Listeners.List< PointsChangedListener > listeners;
 

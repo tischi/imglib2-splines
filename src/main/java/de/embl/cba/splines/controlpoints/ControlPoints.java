@@ -14,7 +14,5 @@ public interface ControlPoints
 	// TODO: not needed, but do via list?!
 	void setPoint( int pointId, double[] point );
 
-
-
 	void getTransform( final AffineTransform3D transform );
 }
