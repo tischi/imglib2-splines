@@ -8,7 +8,7 @@ public class Utils
 
 	public static double[] toArray( RealLocalizable point )
 	{
-		//
+		return null;
 	}
 
 }

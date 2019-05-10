@@ -14,16 +14,26 @@ public class SplineSphere {
     private double halfSupport=SplineBasis.ESPLINE3SUPPORT/2.0;
     // TODO: would be nice to have the basis function is an argument here so it is more generic
 
-    private double PIM;
+    private final double PIM;
+    private final double scale;
+    private final double scaleM;
+    private final double scale2M;
 
     public SplineSphere(int M){
-        this.M=M;
-        PIM=Math.PI/M;
-
-        controlPoints= new RealPoint[M * (M - 1) + 6];
+        this.M = M;
+        PIM = Math.PI / M;
+        controlPoints = new RealPoint[M * (M - 1) + 6];
+        scale = 1.0 / (M * SplineBasis.ESpline3Prime(1.0,PIM));
+        scaleM = 2.0 * (1.0 - Math.cos(2.0 * PIM)) / (Math.cos(PIM) - Math.cos(3.0 * PIM));
+        scale2M = 2.0 * (1.0 - Math.cos(PIM)) / (Math.cos(PIM / 2) - Math.cos(3.0 * PIM / 2));
     }
 
-    public void initializeDefaultShape(double width, double height, double depth) {
+    public int getM()
+    {
+        return M;
+    }
+
+    public void initializeDefaultShape( double width, double height, double depth) {
         double r = Math.min(Math.min(width / 5.0, height / 5.0),
                 depth / 5.0);
 
@@ -31,8 +41,7 @@ public class SplineSphere {
         double y0 = height / 2.0;
         double z0 = depth / 2.0;
 
-        double scaleM = 2.0 * (1.0 - Math.cos(2.0 * PIM)) / (Math.cos(PIM) - Math.cos(3.0 * PIM));
-        double scale2M = 2.0 * (1.0 - Math.cos(PIM)) / (Math.cos(PIM / 2) - Math.cos(3.0 * PIM / 2));
+
         for (int k = 0; k < M; k++) {
             for (int l = 1; l <= M - 1; l++) {
                 double theta = PIM * l;
@@ -75,7 +84,9 @@ public class SplineSphere {
         ArrayList<RealPoint> surface= new ArrayList<RealPoint>();
         for (int nt = 0; nt < M*samplingRateT; nt++) {
             for (int ns = 0; ns <= M*samplingRateS; ns++) {
-                surface.add(parametersToWorld((double)nt/(double)samplingRateT, (double)ns/(double)samplingRateS));
+                final double t = ( double ) nt / ( double ) samplingRateT;
+                final double s = ( double ) ns / ( double ) samplingRateS;
+                surface.add(parametersToWorld( t, s ));
             //surface.add(parametersToWorld((double)nt/(double)samplingRateT, 4.0));
             }
         }
@@ -83,82 +94,20 @@ public class SplineSphere {
     }
 
     public RealPoint parametersToWorld(double t, double s){
-        RealPoint point=new RealPoint(0.0,0.0,0.0);
+        RealPoint point = new RealPoint(0.0,0.0,0.0);
 
-        // Everything but the poles
-        for (int l = 1; l <= M - 1; l++) {
-            double sVal = s-l;
-            if (sVal > -halfSupport && sVal < halfSupport) {
-                for (int k = 0; k < M; k++) {
-                    double tVal=wrapIndex(t, k);
-                    if (tVal > -halfSupport && tVal < halfSupport){
-                        double[] pointValue=new double[nDim];
-                        for(int d=0; d<nDim;d++)
-                            pointValue[d] = point.getDoublePosition(d) + controlPoints[k + (l - 1) * M].getDoublePosition(d) * SplineBasis.ESpline3(sVal,PIM) * SplineBasis.ESpline3(tVal,2.0*PIM);
-                        point.setPosition(pointValue);
-                    }
-                }
-            }
-        }
+        addNonPoleContributions( t, s, point );
 
         // Dealing with the poles
-        double scale = 1.0 / (M * SplineBasis.ESpline3Prime(1.0,PIM));
-        double scaleM = 2.0 * (1.0 - Math.cos(2.0 * PIM)) / (Math.cos(PIM) - Math.cos(3.0 * PIM));
+        addNorthPoleContribution( t, s, point, scale, scaleM );
+        addSouthPoleContribution( t, s, point, scale, scaleM );
 
-        // North tangent plane
-        double[] NorthV1=new double[nDim];
-        double[] NorthV2=new double[nDim];
-        for(int d=0; d<nDim; d++){
-            NorthV1[d] = controlPoints[M * (M - 1) + 2].getDoublePosition(d) - controlPoints[M * (M - 1)].getDoublePosition(d);
-            NorthV2[d] = controlPoints[M * (M - 1) + 3].getDoublePosition(d) - controlPoints[M * (M - 1)].getDoublePosition(d);
-        }
+        return point;
+    }
 
-        // l = -1
-        double sVal = s+1.0;
-        if (sVal > -halfSupport && sVal < halfSupport ) {
-            for (int k = 0; k < M; k++) {
-                double tVal=wrapIndex(t, k);
-                if (tVal > -halfSupport && tVal < halfSupport) {
-                    // compute c[k,-1]
-                    double[] ckminus1=new double[nDim];
-                    for(int d=0; d<nDim; d++)
-                        ckminus1[d] = (controlPoints[k].getDoublePosition(d) + scale * scaleM * (Math.cos(2*PIM*k) * NorthV1[d] + Math.sin(2*PIM*k) * NorthV2[d]));
-
-                    double basisFactor = SplineBasis.ESpline3(sVal,PIM) * SplineBasis.ESpline3(tVal,2.0*PIM);
-                    double[] pointValue=new double[nDim];
-                    for(int d=0; d<nDim;d++)
-                        pointValue[d] = point.getDoublePosition(d) + (ckminus1[d] * basisFactor);
-                    point.setPosition(pointValue);
-                }
-            }
-        }
-
-        // l = 0
-        sVal=s;
-        if (sVal > -halfSupport && sVal < halfSupport) {
-            for (int k = 0; k < M; k++) {
-                double tVal=wrapIndex(t, k);
-                if (tVal > -halfSupport && tVal < halfSupport) {
-                    // compute c[k,-1]
-                    double[] ckminus1=new double[nDim];
-                    for(int d=0; d<nDim; d++)
-                        ckminus1[d] = (controlPoints[k].getDoublePosition(d) + scale * scaleM * (Math.cos(2*PIM*k) * NorthV1[d] + Math.sin(2*PIM*k) * NorthV2[d]));
-
-                    // compute c[k,0]
-                    double[] ck0=new double[nDim];
-                    for(int d=0; d<nDim; d++)
-                        ck0[d] = (controlPoints[M * (M - 1)].getDoublePosition(d)
-                            - SplineBasis.ESpline3(1,PIM) * (ckminus1[d] + controlPoints[k].getDoublePosition(d)))
-                            / SplineBasis.ESpline3(0,PIM);
-
-                    double basisFactor = SplineBasis.ESpline3(sVal,PIM) * SplineBasis.ESpline3(tVal,2.0*PIM);
-                    double[] pointValue=new double[nDim];
-                    for(int d=0; d<nDim;d++)
-                        pointValue[d] = point.getDoublePosition(d) + (ck0[d] * basisFactor);
-                    point.setPosition(pointValue);
-                }
-            }
-        }
+    private void addSouthPoleContribution( double t, double s, RealPoint point, double scale, double scaleM )
+    {
+        double sVal;
 
         // South tangent plane
         double[] SouthV1=new double[nDim];
@@ -215,8 +164,83 @@ public class SplineSphere {
                 }
             }
         }
+    }
 
-        return point;
+    private void addNorthPoleContribution( double t, double s, RealPoint point, double scale, double scaleM )
+    {
+        // North tangent plane
+        double[] NorthV1=new double[nDim];
+        double[] NorthV2=new double[nDim];
+        for(int d=0; d<nDim; d++){
+            NorthV1[d] = controlPoints[M * (M - 1) + 2].getDoublePosition(d) - controlPoints[M * (M - 1)].getDoublePosition(d);
+            NorthV2[d] = controlPoints[M * (M - 1) + 3].getDoublePosition(d) - controlPoints[M * (M - 1)].getDoublePosition(d);
+        }
+
+        // l = -1
+        double sVal = s+1.0;
+        if (sVal > -halfSupport && sVal < halfSupport ) {
+            for (int k = 0; k < M; k++) {
+                double tVal=wrapIndex(t, k);
+                if (tVal > -halfSupport && tVal < halfSupport) {
+                    // compute c[k,-1]
+                    double[] ckminus1=new double[nDim];
+                    for(int d=0; d<nDim; d++)
+                        ckminus1[d] = (controlPoints[k].getDoublePosition(d) + scale * scaleM * (Math.cos(2*PIM*k) * NorthV1[d] + Math.sin(2*PIM*k) * NorthV2[d]));
+
+                    double basisFactor = SplineBasis.ESpline3(sVal,PIM) * SplineBasis.ESpline3(tVal,2.0*PIM);
+                    double[] pointValue=new double[nDim];
+                    for(int d=0; d<nDim;d++)
+                        pointValue[d] = point.getDoublePosition(d) + (ckminus1[d] * basisFactor);
+                    point.setPosition(pointValue);
+                }
+            }
+        }
+
+        // l = 0
+        sVal=s;
+        if (sVal > -halfSupport && sVal < halfSupport) {
+            for (int k = 0; k < M; k++) {
+                double tVal=wrapIndex(t, k);
+                if (tVal > -halfSupport && tVal < halfSupport) {
+                    // compute c[k,-1]
+                    double[] ckminus1=new double[nDim];
+                    for(int d=0; d<nDim; d++)
+                        ckminus1[d] = (controlPoints[k].getDoublePosition(d) + scale * scaleM * (Math.cos(2*PIM*k) * NorthV1[d] + Math.sin(2*PIM*k) * NorthV2[d]));
+
+                    // compute c[k,0]
+                    double[] ck0=new double[nDim];
+                    for(int d=0; d<nDim; d++)
+                        ck0[d] = (controlPoints[M * (M - 1)].getDoublePosition(d)
+                            - SplineBasis.ESpline3(1,PIM) * (ckminus1[d] + controlPoints[k].getDoublePosition(d)))
+                            / SplineBasis.ESpline3(0,PIM);
+
+                    double basisFactor = SplineBasis.ESpline3(sVal,PIM) * SplineBasis.ESpline3(tVal,2.0*PIM);
+                    double[] pointValue=new double[nDim];
+                    for(int d=0; d<nDim;d++)
+                        pointValue[d] = point.getDoublePosition(d) + (ck0[d] * basisFactor);
+                    point.setPosition(pointValue);
+                }
+            }
+        }
+    }
+
+    private void addNonPoleContributions( double t, double s, RealPoint point )
+    {
+        // Everything but the poles
+        for (int l = 1; l <= M - 1; l++) {
+            double sVal = s-l;
+            if (sVal > -halfSupport && sVal < halfSupport) {
+                for (int k = 0; k < M; k++) {
+                    double tVal=wrapIndex(t, k);
+                    if (tVal > -halfSupport && tVal < halfSupport){
+                        double[] pointValue=new double[nDim];
+                        for(int d=0; d<nDim;d++)
+                            pointValue[d] = point.getDoublePosition(d) + controlPoints[k + (l - 1) * M].getDoublePosition(d) * SplineBasis.ESpline3(sVal,PIM) * SplineBasis.ESpline3(tVal,2.0*PIM);
+                        point.setPosition(pointValue);
+                    }
+                }
+            }
+        }
     }
 
     private double wrapIndex(double t, int k){
