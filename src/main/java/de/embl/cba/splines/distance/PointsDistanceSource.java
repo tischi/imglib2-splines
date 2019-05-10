@@ -75,9 +75,9 @@ public class PointsDistanceSource extends RealRandomAccessibleSource< DoubleType
 					for(int nn=0; nn<this.numDimensions(); nn++){
 						currDistance+=((getDoublePosition(nn)-p.getDoublePosition(nn))*(getDoublePosition(nn)-p.getDoublePosition(nn)));
 					}
-					currDistance=Math.sqrt(currDistance);
-					if(currDistance<=distance)
-						distance=currDistance;
+					currDistance = Math.sqrt(currDistance); // TODO: only take sqrt for the correct one...
+					if(currDistance <= distance)
+						distance = currDistance;
 				}
 				type.set( distance );
 				return type;

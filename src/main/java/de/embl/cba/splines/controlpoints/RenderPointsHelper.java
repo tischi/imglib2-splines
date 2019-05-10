@@ -2,6 +2,7 @@ package de.embl.cba.splines.controlpoints;
 
 import net.imglib2.RealPoint;
 import net.imglib2.realtransform.AffineTransform3D;
+import net.imglib2.util.LinAlgHelpers;
 
 import java.awt.geom.GeneralPath;
 import java.util.ArrayList;
@@ -119,6 +120,7 @@ public final class RenderPointsHelper
 
 	private void splitEdge( final int ia, final int ib, final GeneralPath before, final GeneralPath behind )
 	{
+		new RealPoint( 1,1, 1);
 		final double[] a = transformedPoints[ ia ];
 		final double[] b = transformedPoints[ ib ];
 		final double[] pa = projectedPoints[ ia ];
