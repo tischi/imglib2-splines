@@ -1,11 +1,6 @@
 package de.embl.cba.splines.controlpoints;
 
-import bdv.tools.boundingbox.AbstractTransformedBoxModel;
-import bdv.tools.boundingbox.TransformedBoxOverlay;
-import bdv.tools.brightness.SetupAssignments;
 import bdv.viewer.ViewerPanel;
-import org.scijava.listeners.ChangeListener;
-import org.scijava.listeners.ListenableVar;
 import org.scijava.ui.behaviour.Behaviour;
 import org.scijava.ui.behaviour.BehaviourMap;
 import org.scijava.ui.behaviour.InputTrigger;
@@ -17,16 +12,13 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
-import static bdv.tools.boundingbox.TransformedBoxOverlay.BoxDisplayMode.FULL;
-
-
 public class ControlPointsEditor
 {
-	private static final String BOUNDING_BOX_TOGGLE_EDITOR = "edit bounding-box";
+	private static final String POINTS_TOGGLE_EDITOR = "edit points";
 
-	private static final String[] BOUNDING_BOX_TOGGLE_EDITOR_KEYS = new String[] { "button1" };
+	private static final String[] POINTS_TOGGLE_EDITOR_KEYS = new String[] { "button1" };
 
-	private static final String BOUNDING_BOX_MAP = "bounding-box";
+	private static final String POINTS_MAP = "bounding-box";
 
 	private static final String BLOCKING_MAP = "bounding-box-blocking";
 
@@ -36,31 +28,17 @@ public class ControlPointsEditor
 
 	private final TriggerBehaviourBindings triggerbindings;
 
-	private final Behaviours behaviours;
+	//private final Behaviours behaviours;
 
 	private final BehaviourMap blockMap;
 
 	private boolean editable = true;
 
-
 	public ControlPointsEditor(
 			final InputTriggerConfig keyconf,
 			final ViewerPanel viewer,
-			final SetupAssignments setupAssignments,
 			final TriggerBehaviourBindings triggerbindings,
-			final AbstractTransformedBoxModel model )
-	{
-		this( keyconf, viewer, setupAssignments, triggerbindings, model, "selection", bdv.tools.boundingbox.TransformedBoxEditor.BoxSourceType.PLACEHOLDER );
-	}
-
-	public ControlPointsEditor(
-			final InputTriggerConfig keyconf,
-			final ViewerPanel viewer,
-			final SetupAssignments setupAssignments,
-			final TriggerBehaviourBindings triggerbindings,
-			final AbstractControlPointsModel model,
-			final String boxSourceName,
-			final bdv.tools.boundingbox.TransformedBoxEditor.BoxSourceType boxSourceType )
+			final AbstractControlPointsModel model)
 	{
 		this.viewer = viewer;
 		this.triggerbindings = triggerbindings;
@@ -70,17 +48,14 @@ public class ControlPointsEditor
 		 */
 		pointsOverlay = new ControlPointsOverlay( model );
 		pointsOverlay.setPerspective( 0 );
-		pointsOverlay.boxDisplayMode().listeners().add( () -> {
-			viewer.requestRepaint();
-			updateEditability();
-		} );
+		viewer.requestRepaint();
 
 		/*
 		 * Create DragPointsBehaviour
 		 */
 
-		behaviours = new Behaviours( keyconf, "bdv" );
-		behaviours.behaviour( new DragControlPointBehaviour( pointsOverlay, model ), BOUNDING_BOX_TOGGLE_EDITOR, BOUNDING_BOX_TOGGLE_EDITOR_KEYS );
+		//behaviours = new Behaviours( keyconf, "bdv" );
+		//behaviours.behaviour( new DragControlPointBehaviour( pointsOverlay, model ), POINTS_TOGGLE_EDITOR, POINTS_TOGGLE_EDITOR_KEYS );
 
 		/*
 		 * Create BehaviourMap to block behaviours interfering with
@@ -94,49 +69,22 @@ public class ControlPointsEditor
 	{
 		viewer.getDisplay().addOverlayRenderer( pointsOverlay );
 		viewer.addRenderTransformListener( pointsOverlay );
-		viewer.getDisplay().addHandler( pointsOverlay.getCornerHighlighter() );
+		viewer.getDisplay().addHandler( pointsOverlay.getPointHighlighter() );
 
 		refreshBlockMap();
 		updateEditability();
-
-		if ( boxSource != null )
-			boxSource.addToViewer();
 	}
 
 	public void uninstall()
 	{
 		viewer.getDisplay().removeOverlayRenderer( pointsOverlay );
 		viewer.removeTransformListener( pointsOverlay );
-		viewer.getDisplay().removeHandler( pointsOverlay.getCornerHighlighter() );
+		viewer.getDisplay().removeHandler( pointsOverlay.getPointHighlighter() );
 
-		triggerbindings.removeInputTriggerMap( BOUNDING_BOX_MAP );
-		triggerbindings.removeBehaviourMap( BOUNDING_BOX_MAP );
+		triggerbindings.removeInputTriggerMap( POINTS_MAP );
+		triggerbindings.removeBehaviourMap( POINTS_MAP );
 
 		unblock();
-
-		if ( boxSource != null )
-			boxSource.removeFromViewer();
-	}
-
-	/**
-	 * Only meaningful if {@code BoxSourceType == NONE}
-	 */
-	public boolean getFillIntersection()
-	{
-		return pointsOverlay.getFillIntersection();
-	}
-
-	/**
-	 * Only meaningful if {@code BoxSourceType == NONE}
-	 */
-	public void setFillIntersection( final boolean fill )
-	{
-		pointsOverlay.fillIntersection( fill );
-	}
-
-	public ListenableVar< TransformedBoxOverlay.BoxDisplayMode, ChangeListener > boxDisplayMode()
-	{
-		return pointsOverlay.boxDisplayMode();
 	}
 
 	public boolean isEditable()
@@ -149,7 +97,6 @@ public class ControlPointsEditor
 		if ( this.editable == editable )
 			return;
 		this.editable = editable;
-		pointsOverlay.showCornerHandles( editable );
 		updateEditability();
 	}
 
@@ -173,17 +120,17 @@ public class ControlPointsEditor
 
 	private void updateEditability()
 	{
-		if ( editable && pointsOverlay.boxDisplayMode().get() == FULL )
+		if ( editable  )
 		{
-			pointsOverlay.setHighlightedCornerListener( this::highlightedCornerChanged );
-			behaviours.install( triggerbindings, BOUNDING_BOX_MAP );
-			highlightedCornerChanged();
+			pointsOverlay.setHighlightedPointListener( this::highlightedPointChanged );
+			//behaviours.install( triggerbindings, POINTS_MAP );
+			highlightedPointChanged();
 		}
 		else
 		{
-			pointsOverlay.setHighlightedCornerListener( null );
-			triggerbindings.removeInputTriggerMap( BOUNDING_BOX_MAP );
-			triggerbindings.removeBehaviourMap( BOUNDING_BOX_MAP );
+			pointsOverlay.setHighlightedPointListener( null );
+			triggerbindings.removeInputTriggerMap( POINTS_MAP );
+			triggerbindings.removeBehaviourMap( POINTS_MAP );
 			unblock();
 		}
 	}
@@ -198,7 +145,7 @@ public class ControlPointsEditor
 		triggerbindings.removeBehaviourMap( BLOCKING_MAP );
 	}
 
-	private void highlightedCornerChanged()
+	private void highlightedPointChanged()
 	{
 		final int index = pointsOverlay.getHighlightedPointIndex();
 		if ( index < 0 )
@@ -211,13 +158,13 @@ public class ControlPointsEditor
 	{
 		triggerbindings.removeBehaviourMap( BLOCKING_MAP );
 
-		final Set< InputTrigger > moveCornerTriggers = new HashSet<>();
-		for ( final String s : BOUNDING_BOX_TOGGLE_EDITOR_KEYS )
-			moveCornerTriggers.add( InputTrigger.getFromString( s ) );
+		final Set< InputTrigger > movePointsTriggers = new HashSet<>();
+		for ( final String s : POINTS_TOGGLE_EDITOR_KEYS )
+			movePointsTriggers.add( InputTrigger.getFromString( s ) );
 
 		final Map< InputTrigger, Set< String > > bindings = triggerbindings.getConcatenatedInputTriggerMap().getAllBindings();
 		final Set< String > behavioursToBlock = new HashSet<>();
-		for ( final InputTrigger t : moveCornerTriggers )
+		for ( final InputTrigger t : movePointsTriggers )
 			behavioursToBlock.addAll( bindings.get( t ) );
 
 		blockMap.clear();

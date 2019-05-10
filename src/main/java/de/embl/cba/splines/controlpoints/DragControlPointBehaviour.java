@@ -18,7 +18,7 @@ final class DragControlPointBehaviour implements DragBehaviour
 
 	private final double[] initMax = new double[ 3 ];
 
-	private final double[] initCorner = new double[ 3 ];
+	private final double[] initPoint = new double[ 3 ];
 
 	private int pointId;
 	private RealPoint realPoint;
@@ -50,35 +50,19 @@ final class DragControlPointBehaviour implements DragBehaviour
 			return;
 
 		pointsOverlay.getPointsToViewerTransform( transform );
-		final double[] gPos = new double[ 3 ];
 
-		final double[] position = new double[ 3 ];
-		for ( int d = 0; d < 3 ; d++ )
-			position[ d ] = realPoint[ d];
+		final double[] gPos = new double[ realPoint.numDimensions() ];
+		final double[] position = new double[ realPoint.numDimensions() ];
+		for ( int d = 0; d < realPoint.numDimensions() ; d++ )
+			position[ d ] = realPoint.getDoublePosition(d);
+		transform.apply( position, gPos );
 
-		transform.apply( realPoint, gPos );
 		final double[] lPos = pointsOverlay.renderPointsHelper.reproject( x, y, gPos[ 2 ] );
-
 		transform.applyInverse( gPos, lPos );
 
-		final double[] min = new double[ 3 ];
-		final double[] max = new double[ 3 ];
-		for ( int d = 0; d < 3; ++d )
-		{
-			final double p = gPos[ d ];
-			if ( ( pointId & ( 1 << d ) ) == 0 )
-			{
-				min[ d ] = p;
-				max[ d ] = initMax[ d ] = Math.max( initMax[ d ], p );
-			}
-			else
-			{
-				min[ d ] = initMin[ d ] = Math.min( initMin[ d ], p );
-				max[ d ] = p;
-			}
-		}
-
-		model.getPoints().set( pointId, newPoint );
+		RealPoint newPoint=new RealPoint();
+		realPoint.setPosition(gPos);
+		model.getPoints().set( pointId, newPoint);
 	}
 
 	@Override
