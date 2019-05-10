@@ -21,7 +21,6 @@ public class DisplayPointsDistanceSource
 		//final ArrayList< RealPoint > points = spline.getControlPoints();
 
 		final ArrayList< RealPoint > points = spline.getSampledSurface();
-		System.out.println(points.size());
 
 		final PointsDistanceSource pointsDistanceSource = new PointsDistanceSource( "distance to points", interval, points );
 
