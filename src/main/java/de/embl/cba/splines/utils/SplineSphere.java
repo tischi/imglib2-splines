@@ -33,33 +33,34 @@ public class SplineSphere {
         return M;
     }
 
-    public void initializeDefaultShape( double width, double height, double depth) {
-        double r = Math.min(Math.min(width / 5.0, height / 5.0),
-                depth / 5.0);
-
-        double x0 = width / 2.0;
-        double y0 = height / 2.0;
-        double z0 = depth / 2.0;
-
+    public void initializeDefaultShape( double radius, RealPoint center) {
+        double x0 = center.getDoublePosition(0);
+        double y0 = center.getDoublePosition(1);
+        double z0 = center.getDoublePosition(3);
 
         for (int k = 0; k < M; k++) {
             for (int l = 1; l <= M - 1; l++) {
                 double theta = PIM * l;
                 double phi = 2.0 * PIM * k;
-                controlPoints[k + (l - 1) * M] = new RealPoint(x0 + r * scale2M * scaleM * Math.sin(theta) * Math.cos(phi),
-                        y0 + r * scale2M * scaleM * Math.sin(theta) * Math.sin(phi), z0 + r * scale2M * Math.cos(theta));
+                controlPoints[k + (l - 1) * M] = new RealPoint(x0 + radius * scale2M * scaleM * Math.sin(theta) * Math.cos(phi),
+                        y0 + radius * scale2M * scaleM * Math.sin(theta) * Math.sin(phi), z0 + radius * scale2M * Math.cos(theta));
             }
         }
         // north pole
-        controlPoints[M * (M - 1)] = new RealPoint(x0, y0, z0 + r);
+        controlPoints[M * (M - 1)] = new RealPoint(x0, y0, z0 + radius);
         // south pole
-        controlPoints[M * (M - 1) + 1] = new RealPoint(x0, y0, z0 - r);
+        controlPoints[M * (M - 1) + 1] = new RealPoint(x0, y0, z0 - radius);
         // north tangent plane
-        controlPoints[M * (M - 1) + 2] = new RealPoint(x0 + Math.PI * r, y0, z0 + r);
-        controlPoints[M * (M - 1) + 3] = new RealPoint(x0, y0 + Math.PI * r, z0 + r);
+        controlPoints[M * (M - 1) + 2] = new RealPoint(x0 + Math.PI * radius, y0, z0 + radius);
+        controlPoints[M * (M - 1) + 3] = new RealPoint(x0, y0 + Math.PI * radius, z0 + radius);
         // south tangent plane
-        controlPoints[M * (M - 1) + 4] = new RealPoint(x0 + Math.PI * r, y0, z0 - r);
-        controlPoints[M * (M - 1) + 5] = new RealPoint(x0, y0 + Math.PI * r, z0 - r);
+        controlPoints[M * (M - 1) + 4] = new RealPoint(x0 + Math.PI * radius, y0, z0 - radius);
+        controlPoints[M * (M - 1) + 5] = new RealPoint(x0, y0 + Math.PI * radius, z0 - radius);
+    }
+
+    public void initializeDefaultShape( double width, double height, double depth){
+        initializeDefaultShape( Math.min(Math.min(width / 5.0, height / 5.0),
+                depth / 5.0), new RealPoint (width / 2.0, height / 2.0, depth / 2.0));
     }
 
     public ArrayList<RealPoint> getControlPoints(){
@@ -87,7 +88,6 @@ public class SplineSphere {
                 final double t = ( double ) nt / ( double ) samplingRateT;
                 final double s = ( double ) ns / ( double ) samplingRateS;
                 surface.add(parametersToWorld( t, s ));
-            //surface.add(parametersToWorld((double)nt/(double)samplingRateT, 4.0));
             }
         }
         return surface;
@@ -97,8 +97,6 @@ public class SplineSphere {
         RealPoint point = new RealPoint(0.0,0.0,0.0);
 
         addNonPoleContributions( t, s, point );
-
-        // Dealing with the poles
         addNorthPoleContribution( t, s, point, scale, scaleM );
         addSouthPoleContribution( t, s, point, scale, scaleM );
 
@@ -107,8 +105,6 @@ public class SplineSphere {
 
     private void addSouthPoleContribution( double t, double s, RealPoint point, double scale, double scaleM )
     {
-        double sVal;
-
         // South tangent plane
         double[] SouthV1=new double[nDim];
         double[] SouthV2=new double[nDim];
@@ -118,7 +114,7 @@ public class SplineSphere {
         }
 
         // l = M+1
-        sVal=s-M-1;
+        double sVal=s-M-1;
         if (sVal > -halfSupport && sVal < halfSupport) {
             for (int k = 0; k < M; k++) {
                 double tVal=wrapIndex(t, k);
@@ -138,6 +134,7 @@ public class SplineSphere {
             }
         }
 
+        // l = M
         sVal=s-M;
         if (sVal > -halfSupport && sVal < halfSupport) {
             for (int k = 0; k < M; k++) {

@@ -28,7 +28,7 @@ public class ControlPointsEditor
 
 	private final TriggerBehaviourBindings triggerbindings;
 
-	//private final Behaviours behaviours;
+	private final Behaviours behaviours;
 
 	private final BehaviourMap blockMap;
 
@@ -54,8 +54,8 @@ public class ControlPointsEditor
 		 * Create DragPointsBehaviour
 		 */
 
-		//behaviours = new Behaviours( keyconf, "bdv" );
-		//behaviours.behaviour( new DragControlPointBehaviour( pointsOverlay, model ), POINTS_TOGGLE_EDITOR, POINTS_TOGGLE_EDITOR_KEYS );
+		behaviours = new Behaviours( keyconf, "bdv" );
+		behaviours.behaviour( new DragControlPointBehaviour( pointsOverlay, model ), POINTS_TOGGLE_EDITOR, POINTS_TOGGLE_EDITOR_KEYS );
 
 		/*
 		 * Create BehaviourMap to block behaviours interfering with
@@ -123,7 +123,7 @@ public class ControlPointsEditor
 		if ( editable  )
 		{
 			pointsOverlay.setHighlightedPointListener( this::highlightedPointChanged );
-			//behaviours.install( triggerbindings, POINTS_MAP );
+			behaviours.install( triggerbindings, POINTS_MAP );
 			highlightedPointChanged();
 		}
 		else

@@ -14,12 +14,6 @@ final class DragControlPointBehaviour implements DragBehaviour
 
 	private final AbstractControlPointsModel model;
 
-	private final double[] initMin = new double[ 3 ];
-
-	private final double[] initMax = new double[ 3 ];
-
-	private final double[] initPoint = new double[ 3 ];
-
 	private int pointId;
 	private RealPoint realPoint;
 
@@ -60,9 +54,7 @@ final class DragControlPointBehaviour implements DragBehaviour
 		final double[] lPos = pointsOverlay.renderPointsHelper.reproject( x, y, gPos[ 2 ] );
 		transform.applyInverse( gPos, lPos );
 
-		RealPoint newPoint=new RealPoint();
 		realPoint.setPosition(gPos);
-		model.getPoints().set( pointId, newPoint);
 	}
 
 	@Override

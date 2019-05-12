@@ -57,7 +57,7 @@ public class ControlPointsOverlay implements OverlayRenderer, TransformListener<
 
 		viewerTransform = new AffineTransform3D();
 		transform = new AffineTransform3D();
-		renderPointsHelper = new RenderPointsHelper(controlPoints.getPoints().size());
+		renderPointsHelper = new RenderPointsHelper(this.controlPoints.getPoints().size());
 		pointHighlighter = new PointHighlighter( DISTANCE_TOLERANCE );
 	}
 

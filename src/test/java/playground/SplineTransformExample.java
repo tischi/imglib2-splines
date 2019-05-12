@@ -35,7 +35,14 @@ public class SplineTransformExample
 
 
 		// TODO: not sure what we need...
+		// What would we put in access? It seems we only need the indices of the image (i.e., the (t,s) doublets), not the image itself.
 //		2dimage =  RealViews.transform( 3dimage, transformation );
 
+		// It seems that transform needs a source, a target and a transform.
+		// In our case, the "source" would simply be the sampled (t,s) parameter space?
+		// Also, in our case the "transform" depends on the target image itself (as the surface is fitted to ta 3D image content). Seems to be a bit of a circular logic.
+		// What we need is to be able to retrieve the image value at (x,y,z) corresponding to a given (t,s) value, for a given sample rate in the parameter space.
+		// Is there a way to do that by avoiding a for loop?
+		// In other words, we wonder if we can avoid the getSampledSurface function from SplineSphere by iterating over the apply function of SurfaceSplineToRealPointTransform.
 	}
 }
