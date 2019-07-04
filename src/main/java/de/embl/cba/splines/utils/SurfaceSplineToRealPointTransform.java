@@ -7,6 +7,10 @@ import net.imglib2.realtransform.RealTransform;
 
 public class SurfaceSplineToRealPointTransform implements RealTransform
 {
+	/*
+	* Number of parameters for parametrized surface representation,
+	* not to be confused with the control points.
+	*/
 	final static int numParameters = 2;
 	final static int numDimensions = 3;
 	private final SplineSphere splineSphere;
@@ -22,6 +26,14 @@ public class SurfaceSplineToRealPointTransform implements RealTransform
 		this.height = height;
 		this.depth = depth;
 		splineSphere.initializeDefaultShape( this.width, this.height, this.depth );
+	}
+
+	public SurfaceSplineToRealPointTransform( SplineSphere splineSphere )
+	{
+		this.splineSphere = splineSphere;
+		this.width = 0;
+		this.height = 0;
+		this.depth = 0;
 	}
 
 	@Override
