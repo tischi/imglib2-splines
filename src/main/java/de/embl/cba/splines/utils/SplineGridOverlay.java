@@ -12,41 +12,51 @@ import java.util.List;
 
 public class SplineGridOverlay extends BdvOverlay
 {
-	private final RealTransform spline;
+	private final int numControlPoints;
 
-	private List< List< RealPoint > > grid = createGrid( 15 );
+	private final SurfaceSplineToRealPointTransform spline;
 
-	public SplineGridOverlay( RealTransform spline )
+	private final AffineTransform3D transform = new AffineTransform3D();
+
+	private List< List< RealPoint > > grid;
+
+	public SplineGridOverlay( int pointDensity, int m, double width, double height, double depth )
 	{
-		this.spline = spline;
+		//this.spline = spline;
+		numControlPoints = m;
+		spline = new SurfaceSplineToRealPointTransform( m, width, height, depth );
+		grid = createGrid( pointDensity, numControlPoints );
 	}
 
-	private static List< List< RealPoint > > createGrid( int numLines )
+	private static List< List< RealPoint > > createGrid( int pointDensity, int numControlPoints )
 	{
-		List< List< RealPoint > > lines = new ArrayList();
+		List< List< RealPoint > > gridPoints = new ArrayList();
 
-		for( int i = 0; i <= 6*numLines; i++ )
+		int numLines = pointDensity * numControlPoints;
+
+		for( int i = 0; i <= numLines; i++ )
 		{
-			RealPoint xStartPoint = RealPoint.wrap( new double[] { i / (double) numLines, 0 } );
-			RealPoint xEndPoint = RealPoint.wrap( new double[] { i / (double) numLines, 6 } );
-			lines.add( createGridLine( xStartPoint, xEndPoint ) );
+			RealPoint xStartPoint = RealPoint.wrap( new double[] { i / (double) pointDensity, 0 } );
+			RealPoint xEndPoint = RealPoint.wrap( new double[] { i / (double) pointDensity, numControlPoints } );
+			gridPoints.add( createGridPoints( xStartPoint, xEndPoint ) );
 		}
 
-		for( int i = 0; i <= 6*numLines; i++ )
+		for( int i = 0; i <= numLines; i++ )
 		{
-			RealPoint yStartPoint = RealPoint.wrap( new double[] { 0,  i / (double) numLines } );
-			RealPoint yEndPoint = RealPoint.wrap( new double[] { 6, i / (double) numLines } );
-			lines.add( createGridLine( yStartPoint, yEndPoint ) );
+			RealPoint yStartPoint = RealPoint.wrap( new double[] { 0,  i / (double) pointDensity } );
+			RealPoint yEndPoint = RealPoint.wrap( new double[] { numControlPoints, i / (double) pointDensity} );
+			gridPoints.add( createGridPoints( yStartPoint, yEndPoint ) );
 		}
-		return lines;
+		return gridPoints;
 	}
 
-	private static List< RealPoint > createGridLine( RealPoint startPoint, RealPoint endPoint )
+	private static List< RealPoint > createGridPoints( RealPoint startPoint, RealPoint endPoint )
 	{
-		List< RealPoint > points = new ArrayList<>( 100 );
+		List< RealPoint > points = new ArrayList< RealPoint >();
 		RealPoint realPoint;
 		int dim = startPoint.numDimensions();
 
+		// TODO: Take care of sampling! --> Adapt to bigdataviewer distance between pixels
 		for( int i = 0; i <= 100; i++)
 		{
 			realPoint = new RealPoint( dim );
@@ -56,7 +66,7 @@ public class SplineGridOverlay extends BdvOverlay
 								  + (1 - (i / 100. ) ) * endPoint.getDoublePosition( j );
 				realPoint.setPosition( position, j );
 			}
-			points.add(realPoint);
+			points.add( realPoint );
 		}
 		return points;
 	}
@@ -68,14 +78,14 @@ public class SplineGridOverlay extends BdvOverlay
 		RealTransformSequence transformSequence = new RealTransformSequence();
 		transformSequence.add( spline );
 
-		final AffineTransform3D t = new AffineTransform3D();
-		getCurrentTransform3D( t );
-		transformSequence.add( t );
+		//final AffineTransform3D t = new AffineTransform3D();
+		getCurrentTransform3D( transform );
+		transformSequence.add( transform );
 
 		drawLines( g, transformSequence, grid );
 	}
 
-	private static void drawLines( Graphics2D g, RealTransform t, List< List< RealPoint > > grid)
+	private static void drawLines( Graphics2D g, RealTransform t, List< List< RealPoint > > grid )
 	{
 		for( List< RealPoint > points: grid )
 			drawLine( g, t, points );
@@ -96,4 +106,14 @@ public class SplineGridOverlay extends BdvOverlay
 
 		g.drawPolyline( x, y, points.size() );
 	}
-}
+
+	public ArrayList<RealPoint> getControlPoints()
+	{
+		return this.spline.getControlPoints();
+	}
+
+	public AffineTransform3D getAffineTransform3D()
+	{
+		return this.transform;
+	}
+}		
