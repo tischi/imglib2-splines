@@ -36,7 +36,7 @@ public class SplineSphere {
     public void initializeDefaultShape( double radius, RealPoint center) {
         double x0 = center.getDoublePosition(0);
         double y0 = center.getDoublePosition(1);
-        double z0 = center.getDoublePosition(3);
+        double z0 = center.getDoublePosition(2);
 
         for (int k = 0; k < M; k++) {
             for (int l = 1; l <= M - 1; l++) {
@@ -243,10 +243,10 @@ public class SplineSphere {
     private double wrapIndex(double t, int k){
         double tVal=t-k;
         if (k < t-halfSupport) {
-            if (k + M >= t - SplineBasis.ESPLINE3SUPPORT / 2.0 && k + M <= t + SplineBasis.ESPLINE3SUPPORT / 2.0)
+            if (k + M >= t - halfSupport && k + M <= t + halfSupport)
                 tVal = t - (k + M);
         } else if (k > t+halfSupport) {
-            if (k - M >= t - SplineBasis.ESPLINE3SUPPORT / 2.0 && k - M <= t + SplineBasis.ESPLINE3SUPPORT / 2.0)
+            if (k - M >= t - halfSupport && k - M <= t + halfSupport)
                 tVal = t - (k - M);
         }
         return tVal;
