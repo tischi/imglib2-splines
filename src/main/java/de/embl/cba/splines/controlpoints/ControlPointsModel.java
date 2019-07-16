@@ -27,6 +27,14 @@ public class ControlPointsModel extends AbstractControlPointsModel {
         else{
             for(int i=0; i<points.size(); i++)
                 this.points.set(i,points.get(i));
+            notifyPointsChanged();
         }
+
+    }
+
+    @Override
+    public void setPoint(final RealPoint point, final int index) {
+        this.points.set(index,point);
+        notifyPointsChanged();
     }
 }
