@@ -6,7 +6,7 @@ import net.imglib2.RealPoint;
 import net.imglib2.realtransform.AffineTransform3D;
 import org.scijava.ui.behaviour.DragBehaviour;
 
-final class DragControlPointBehaviour implements DragBehaviour
+final class DragSingleControlPointBehaviour implements DragBehaviour
 {
 	private final ControlPointsOverlay pointsOverlay;
 
@@ -14,10 +14,12 @@ final class DragControlPointBehaviour implements DragBehaviour
 
 	private final AbstractControlPointsModel model;
 
+	private final AffineTransform3D transform = new AffineTransform3D();
+
 	private int pointId;
 	private RealPoint realPoint;
 
-	public DragControlPointBehaviour( final ControlPointsOverlay pointsOverlay, final AbstractControlPointsModel model )
+	public DragSingleControlPointBehaviour(final ControlPointsOverlay pointsOverlay, final AbstractControlPointsModel model )
 	{
 		this.pointsOverlay = pointsOverlay;
 		this.model = model;
@@ -34,8 +36,6 @@ final class DragControlPointBehaviour implements DragBehaviour
 
 		moving = true;
 	}
-
-	private final AffineTransform3D transform = new AffineTransform3D();
 
 	@Override
 	public void drag( final int x, final int y )

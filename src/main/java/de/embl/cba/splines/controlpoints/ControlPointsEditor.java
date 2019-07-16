@@ -14,9 +14,13 @@ import java.util.Set;
 
 public class ControlPointsEditor
 {
-	private static final String POINTS_TOGGLE_EDITOR = "edit points";
+	private static final String SINGLE_POINT_TOGGLE_EDITOR = "edit one points";
 
-	private static final String[] POINTS_TOGGLE_EDITOR_KEYS = new String[] { "button1" };
+	private static final String[] SINGLE_POINT_TOGGLE_EDITOR_KEYS = new String[] { "button1" };
+
+	private static final String MOVE_ALL_POINTS_TOGGLE_EDITOR = "translate all points";
+
+	private static final String[] MOVE_ALL_POINTS_TOGGLE_EDITOR_KEYS = new String[] { "button1 shift" };
 
 	private static final String POINTS_MAP = "bounding-box";
 
@@ -55,7 +59,8 @@ public class ControlPointsEditor
 		 */
 
 		behaviours = new Behaviours( keyconf, "bdv" );
-		behaviours.behaviour( new DragControlPointBehaviour( pointsOverlay, model ), POINTS_TOGGLE_EDITOR, POINTS_TOGGLE_EDITOR_KEYS );
+		behaviours.behaviour( new DragSingleControlPointBehaviour( pointsOverlay, model ), SINGLE_POINT_TOGGLE_EDITOR, SINGLE_POINT_TOGGLE_EDITOR_KEYS );
+		behaviours.behaviour( new DragAllControlPointsBehaviour( pointsOverlay, model ), MOVE_ALL_POINTS_TOGGLE_EDITOR, MOVE_ALL_POINTS_TOGGLE_EDITOR_KEYS );
 
 		/*
 		 * Create BehaviourMap to block behaviours interfering with
@@ -148,7 +153,8 @@ public class ControlPointsEditor
 	private void highlightedPointChanged()
 	{
 		final int index = pointsOverlay.getHighlightedPointIndex();
-		if ( index < 0 )
+		final boolean highlight=pointsOverlay.allHighlighted();
+		if ( index < 0 && !highlight)
 			unblock();
 		else
 			block();
@@ -158,13 +164,18 @@ public class ControlPointsEditor
 	{
 		triggerbindings.removeBehaviourMap( BLOCKING_MAP );
 
-		final Set< InputTrigger > movePointsTriggers = new HashSet<>();
-		for ( final String s : POINTS_TOGGLE_EDITOR_KEYS )
-			movePointsTriggers.add( InputTrigger.getFromString( s ) );
+		final Set< InputTrigger > moveOnePointTriggers = new HashSet<>();
+		for ( final String s : SINGLE_POINT_TOGGLE_EDITOR_KEYS )
+			moveOnePointTriggers.add( InputTrigger.getFromString( s ) );
+		final Set< InputTrigger > moveAllPointsTriggers = new HashSet<>();
+		for ( final String s : MOVE_ALL_POINTS_TOGGLE_EDITOR_KEYS )
+			moveAllPointsTriggers.add( InputTrigger.getFromString( s ) );
 
 		final Map< InputTrigger, Set< String > > bindings = triggerbindings.getConcatenatedInputTriggerMap().getAllBindings();
 		final Set< String > behavioursToBlock = new HashSet<>();
-		for ( final InputTrigger t : movePointsTriggers )
+		for ( final InputTrigger t : moveOnePointTriggers )
+			behavioursToBlock.addAll( bindings.get( t ) );
+		for ( final InputTrigger t : moveAllPointsTriggers )
 			behavioursToBlock.addAll( bindings.get( t ) );
 
 		blockMap.clear();

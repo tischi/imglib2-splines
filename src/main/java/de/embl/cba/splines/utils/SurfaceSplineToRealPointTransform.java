@@ -5,8 +5,14 @@ import net.imglib2.RealPoint;
 import net.imglib2.RealPositionable;
 import net.imglib2.realtransform.RealTransform;
 
+import java.util.ArrayList;
+
 public class SurfaceSplineToRealPointTransform implements RealTransform
 {
+	/*
+	* Number of parameters for parametrized surface representation,
+	* not to be confused with the control points.
+	*/
 	final static int numParameters = 2;
 	final static int numDimensions = 3;
 	private final SplineSphere splineSphere;
@@ -61,5 +67,10 @@ public class SurfaceSplineToRealPointTransform implements RealTransform
 	public RealTransform copy()
 	{
 		return new SurfaceSplineToRealPointTransform( splineSphere.getM(), width, height, depth );
+	}
+
+	public ArrayList<RealPoint> getControlPoints()
+	{
+		return splineSphere.getControlPoints();
 	}
 }

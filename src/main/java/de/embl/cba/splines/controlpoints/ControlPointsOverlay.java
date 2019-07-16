@@ -5,6 +5,8 @@ import net.imglib2.ui.OverlayRenderer;
 import net.imglib2.ui.TransformListener;
 
 import java.awt.*;
+import java.awt.event.KeyListener;
+import java.awt.event.KeyEvent;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseMotionAdapter;
 import java.awt.event.MouseMotionListener;
@@ -49,6 +51,8 @@ public class ControlPointsOverlay implements OverlayRenderer, TransformListener<
 
 	private int pointId = -1;
 
+	private boolean allHighlighted = false;
+
 	private ControlPointsOverlay.HighlightedPointListener highlightedPointListener;
 
 	public ControlPointsOverlay( final ControlPoints controlPoints )
@@ -87,7 +91,7 @@ public class ControlPointsOverlay implements OverlayRenderer, TransformListener<
 			transform.preConcatenate( viewerTransform );
 		}
 
-		renderPointsHelper.setPerspectiveProjection( perspective > 0 );
+		//renderPointsHelper.setPerspectiveProjection( perspective > 0 );
 		renderPointsHelper.setDepth( perspective * sourceSize );
 		renderPointsHelper.setOrigin( ox, oy );
 		renderPointsHelper.renderPoints( controlPoints.getPoints(), transform );
@@ -106,7 +110,7 @@ public class ControlPointsOverlay implements OverlayRenderer, TransformListener<
 			final double z = renderPointsHelper.transformedPoints[i][2];
 			final Color pointColor = (z > 0) ? backColor : frontColor;
 
-			if(i==pointId)
+			if(i==pointId || allHighlighted)
 				graphics.setColor(highlightedPointColor);
 			else
 				graphics.setColor(pointColor);
@@ -156,6 +160,11 @@ public class ControlPointsOverlay implements OverlayRenderer, TransformListener<
 		return pointId;
 	}
 
+	public boolean allHighlighted()
+	{
+		return allHighlighted;
+	}
+
 	/**
 	 * Returns a {@code MouseMotionListener} that can be installed into a bdv
 	 * (see {@code ViewerPanel.getDisplay().addHandler(...)}). If installed, it
@@ -190,6 +199,14 @@ public class ControlPointsOverlay implements OverlayRenderer, TransformListener<
 			highlightedPointListener.highlightedPointChanged();
 	}
 
+	private void setAllHighlighted( final boolean highlight )
+	{
+		if ( allHighlighted!=highlight && pointId>=0) {
+			allHighlighted=highlight;
+			highlightedPointListener.highlightedPointChanged();
+		}
+	}
+
 	/**
 	 * Sets the source size (estimated maximum dimension) in global coordinates.
 	 * Used for setting up perspective projection.
@@ -202,7 +219,7 @@ public class ControlPointsOverlay implements OverlayRenderer, TransformListener<
 		this.sourceSize = sourceSize;
 	}
 
-	private class PointHighlighter extends MouseMotionAdapter
+	private class PointHighlighter extends MouseMotionAdapter implements KeyListener
 	{
 		private final double squTolerance;
 
@@ -214,23 +231,39 @@ public class ControlPointsOverlay implements OverlayRenderer, TransformListener<
 		@Override
 		public void mouseMoved( final MouseEvent e )
 		{
-			final int x = e.getX();
-			final int y = e.getY();
+			if(!allHighlighted) {
+				final int x = e.getX();
+				final int y = e.getY();
 
-			final int numPoints = renderPointsHelper.numPoints;
-			for ( int i = 0; i < numPoints; i++ )
-			{
-				final double[] point = renderPointsHelper.projectedPoints[ i ];
-				final double dx = x - point[ 0 ];
-				final double dy = y - point[ 1 ];
-				final double dr2 = dx * dx + dy * dy;
-				if ( dr2 < squTolerance )
-				{
-					setHighlightedPoint( i );
-					return;
+				final int numPoints = renderPointsHelper.numPoints;
+				for (int i = 0; i < numPoints; i++) {
+					final double[] point = renderPointsHelper.projectedPoints[i];
+					final double dx = x - point[0];
+					final double dy = y - point[1];
+					final double dr2 = dx * dx + dy * dy;
+					if (dr2 < squTolerance) {
+						setHighlightedPoint(i);
+						return;
+					}
 				}
+				setHighlightedPoint(-1);
 			}
-			setHighlightedPoint( -1 );
+		}
+
+		@Override
+		public void keyPressed(KeyEvent e) {
+			if(e.getKeyCode() == KeyEvent.VK_SHIFT)
+				setAllHighlighted(true);
+		}
+
+		@Override
+		public void keyReleased(KeyEvent e) {
+			if(e.getKeyCode() == KeyEvent.VK_SHIFT)
+				setAllHighlighted(false);
+		}
+
+		@Override
+		public void keyTyped(KeyEvent e) {
 		}
 	}
 }
