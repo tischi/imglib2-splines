@@ -73,6 +73,8 @@ public abstract class AbstractControlPointsModel implements ControlPoints
 
 	public abstract void setPoints( List< RealPoint > points );
 
+	public abstract void setPoint( RealPoint point, int index );
+
 	protected void notifyPointsChanged()
 	{
 		listeners.list.forEach( PointsChangedListener::pointsChanged );

@@ -16,7 +16,7 @@ public final class RenderPointsHelper
 	/**
 	 * scale the 2D projection of the points by this factor.
 	 */
-	private double scale = 0.1;
+	private double scale = 1;
 
 	private boolean perspective = false;
 

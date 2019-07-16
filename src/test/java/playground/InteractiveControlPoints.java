@@ -33,8 +33,7 @@ public class InteractiveControlPoints
 		img.forEach( t -> t.set( random.nextInt( 128 ) ) );
 
 		final AffineTransform3D imageTransform = new AffineTransform3D();
-		imageTransform.set( 2, 2, 2 );
-		final Bdv bdv = BdvFunctions.show( img, "image", BdvOptions.options().sourceTransform( imageTransform ) );
+		final Bdv bdv = BdvFunctions.show( img, "image", BdvOptions.options().sourceTransform( imageTransform ) ); //BdvOptions.options().sourceTransform( imageTransform )
 
 		final ArrayList< RealPoint > points = new ArrayList<RealPoint>();
 		points.add(new RealPoint(10.0,10.0,10.0));
@@ -42,7 +41,6 @@ public class InteractiveControlPoints
 
 		ControlPointsModel model=new ControlPointsModel(points, imageTransform);
 		ControlPointsEditor pointsEditor = new ControlPointsEditor(new InputTriggerConfig(), bdv.getBdvHandle().getViewerPanel(), bdv.getBdvHandle().getTriggerbindings(), model);
-		pointsEditor.setPerspective(1.0D, 1000.0D);
 		pointsEditor.setEditable(true);
 		pointsEditor.install();
 		model.pointsChangedListeners().add( () -> {

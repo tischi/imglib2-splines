@@ -54,7 +54,7 @@ final class DragControlPointBehaviour implements DragBehaviour
 		final double[] lPos = pointsOverlay.renderPointsHelper.reproject( x, y, gPos[ 2 ] );
 		transform.applyInverse( gPos, lPos );
 
-		realPoint.setPosition(gPos);
+		model.setPoint(new RealPoint (gPos), pointId);
 	}
 
 	@Override
