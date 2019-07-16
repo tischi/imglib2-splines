@@ -57,19 +57,18 @@ public class SplineBasis {
         return SplineValue;
     }
 
-    /*// TODO
-    *//** First derivative of the quadratic B-spline. *//*
+    /** First derivative of the quadratic B-spline. */
     public static double QuadraticBSplinePrime(double t) {
         double SplinePrimeValue = 0.0;
         if ((t >= -1.5) && (t <= -0.5)) {
-            SplinePrimeValue = ;
+            SplinePrimeValue = t+1.5;
         } else if ((t > -0.5) & (t <= 0.5)) {
-            SplinePrimeValue = ;
+            SplinePrimeValue = -2.0*t;
         } else if ((t > 0.5) & (t <= 1.5)) {
-            SplinePrimeValue = ;
+            SplinePrimeValue = t-1.5;
         }
         return SplinePrimeValue;
-    }*/
+    }
 
     /** Cubic B-spline. */
     public static double CubicBSpline(double t) {
@@ -86,21 +85,20 @@ public class SplineBasis {
         return SplineValue;
     }
 
-    /*// TODO
-     *//** First derivative of the cubic B-spline. *//*
+     /** First derivative of the cubic B-spline. */
      public static double CubicBSplinePrime(double t) {
         double SplinePrimeValue = 0.0;
         if ((t >= -2.0) && (t <= -1.0)) {
-            SplinePrimeValue = ;
+            SplinePrimeValue = 1.0 / 2.0 * t * t + 2.0 * t + 2.0;
         } else if ((t > -1.0) & (t <= 0.0)) {
-            SplinePrimeValue = ;
+            SplinePrimeValue = -3.0 / 2.0 * t * t - 2.0 * t;
         } else if ((t > 0.0) & (t <= 1.0)) {
-            SplinePrimeValue = ;
+            SplinePrimeValue = 3.0 / 2.0 * t * t - 2.0 * t;
         } else if ((t > 1.0) & (t <= 2.0)) {
-            SplinePrimeValue = ;
+            SplinePrimeValue = -1.0 / 2.0 * t * t + 2.0 * t - 2.0;
         }
         return SplinePrimeValue;
-    }*/
+    }
 
 
     /** Exponential spline with parameters (0,-j alpha, j alpha). */

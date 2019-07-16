@@ -71,9 +71,9 @@ public abstract class AbstractControlPointsModel implements ControlPoints
 		return listeners;
 	}
 
-	public abstract void setPoints( List< RealPoint > points );
+	public abstract void setPoints(final List< RealPoint > points);
 
-	public abstract void setPoint( RealPoint point, int index );
+	public abstract void setPointPosition( double[] position, int index );
 
 	protected void notifyPointsChanged()
 	{

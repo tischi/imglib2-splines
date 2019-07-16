@@ -33,8 +33,8 @@ public class ControlPointsModel extends AbstractControlPointsModel {
     }
 
     @Override
-    public void setPoint(final RealPoint point, final int index) {
-        this.points.set(index,point);
+    public void setPointPosition(double[] position, final int index) {
+        this.points.get(index).setPosition(position);
         notifyPointsChanged();
     }
 }
