@@ -3,12 +3,9 @@ package playground;
 import bdv.util.Bdv;
 import bdv.util.BdvFunctions;
 import bdv.util.BdvOptions;
-import bdv.util.BdvOverlay;
 import de.embl.cba.splines.controlpoints.ControlPointsEditor;
 import de.embl.cba.splines.controlpoints.ControlPointsModel;
 import de.embl.cba.splines.utils.SplineGridOverlay;
-import de.embl.cba.splines.utils.SplineSphere;
-import de.embl.cba.splines.utils.SurfaceSplineToRealPointTransform;
 import net.imglib2.FinalInterval;
 import net.imglib2.RealPoint;
 import net.imglib2.img.Img;
@@ -18,7 +15,6 @@ import net.imglib2.type.numeric.integer.UnsignedByteType;
 import org.scijava.ui.behaviour.io.InputTriggerConfig;
 
 import java.util.ArrayList;
-import java.util.List;
 
 public class InteractiveControlledMesh
 {
