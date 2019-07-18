@@ -12,67 +12,101 @@ import java.util.List;
 
 public class SplineGridOverlay extends BdvOverlay
 {
+	private final static int MAXSAMPLINGRATE = 500;
+	private int samplingRate;
+
 	private final int numControlPointsT;
 	private final int numControlPointsS;
 
+	private final int lineDensity;
+
 	private final SurfaceSplineToRealPointTransform spline;
 
-	private final AffineTransform3D transform = new AffineTransform3D();
+	private final AffineTransform3D transform;
 
 	private List< List< RealPoint > > grid;
 
-	public SplineGridOverlay( int pointDensity, int m, double width, double height, double depth )
+	public SplineGridOverlay( int lineDensity, int m, double width, double height, double depth )
 	{
-		//this.spline = spline;
 		numControlPointsT = m;
 		numControlPointsS = m;
+		this.lineDensity = lineDensity;
+		transform = new AffineTransform3D();
 		spline = new SurfaceSplineToRealPointTransform( m, m, width, height, depth );
-		grid = createGrid( pointDensity, numControlPointsT, numControlPointsS );
 	}
 
-	private static List< List< RealPoint > > createGrid( int pointDensity, int numControlPointsT, int numControlPointsS )
+	private List< List< RealPoint > > createGrid( int lineDensity, int numControlPointsT, int numControlPointsS )
 	{
 		List< List< RealPoint > > gridPoints = new ArrayList();
 
-		int numLongitudes = pointDensity * (numControlPointsT);
+		int numLongitudes = lineDensity * (numControlPointsT);
 
 		for( int i = 0; i <= numLongitudes; i++ )
 		{
-			RealPoint xStartPoint = RealPoint.wrap( new double[] { i / (double) pointDensity, 0 } );
-			RealPoint xEndPoint = RealPoint.wrap( new double[] { i / (double) pointDensity, numControlPointsS-1 } );
+			RealPoint xStartPoint = RealPoint.wrap( new double[] { i / (double) lineDensity, 0 } );
+			RealPoint xEndPoint = RealPoint.wrap( new double[] { i / (double) lineDensity, numControlPointsS-1 } );
 			gridPoints.add( createGridPoints( xStartPoint, xEndPoint ) );
 		}
 
-		int numLatitudes = pointDensity * (numControlPointsS-1);
+		int numLatitudes = lineDensity * (numControlPointsS-1);
 
 		for( int i = 0; i <= numLatitudes; i++ )
 		{
-			RealPoint yStartPoint = RealPoint.wrap( new double[] { 0,  i / (double) pointDensity } );
-			RealPoint yEndPoint = RealPoint.wrap( new double[] { numControlPointsT, i / (double) pointDensity} );
+			RealPoint yStartPoint = RealPoint.wrap( new double[] { 0,  i / (double) lineDensity } );
+			RealPoint yEndPoint = RealPoint.wrap( new double[] { numControlPointsT, i / (double) lineDensity} );
 			gridPoints.add( createGridPoints( yStartPoint, yEndPoint ) );
 		}
 		return gridPoints;
 	}
 
-	private static List< RealPoint > createGridPoints( RealPoint startPoint, RealPoint endPoint )
+	private List< RealPoint > createGridPoints( RealPoint startPoint, RealPoint endPoint )
 	{
 		List< RealPoint > points = new ArrayList< RealPoint >();
 		RealPoint realPoint;
 		int dim = startPoint.numDimensions();
 
-		// TODO: Take care of sampling! --> Adapt to bigdataviewer distance between pixels
-		for( int i = 0; i <= 100; i++)
+		for( int i = 0; i <= samplingRate; i++)
 		{
 			realPoint = new RealPoint( dim );
 			for( int j = 0; j < dim; j++)
 			{
-				double position = ( i / 100. ) * startPoint.getDoublePosition( j )
-								  + (1 - (i / 100. ) ) * endPoint.getDoublePosition( j );
+				double position = ( i / (double) samplingRate ) * startPoint.getDoublePosition( j )
+								  + (1 - (i / (double) samplingRate ) ) * endPoint.getDoublePosition( j );
 				realPoint.setPosition( position, j );
 			}
 			points.add( realPoint );
 		}
 		return points;
+	}
+
+	private double getSamplingRate()
+	{
+		ArrayList< RealPoint > controlPoints = getControlPoints();
+		ArrayList< RealPoint > controlPointsScreen = new ArrayList< RealPoint >();
+
+		for( int i = 0; i < controlPoints.size(); i++ )
+		{
+			RealPoint point = new RealPoint( 3 );
+			transform.apply( controlPoints.get( i ), point );
+			controlPointsScreen.add( point );
+		}
+
+		double max = -1;
+		for( int i = 0; i < controlPointsScreen.size() - 1; i++ )
+		{
+			double pos = 0;
+			for( int j = 0; j < 3; j++ )
+			{
+				double d2 = controlPointsScreen.get( i+1 ).getDoublePosition( j );
+				double d1 = controlPointsScreen.get( i ).getDoublePosition( j );
+				pos += Math.pow( d2-d1, 2 );
+			}
+			pos = Math.sqrt(pos);
+			if( max < pos )
+				max = pos;
+		}
+		
+		return Math.min( controlPoints.size()*max, MAXSAMPLINGRATE );
 	}
 
 	@Override
@@ -82,9 +116,12 @@ public class SplineGridOverlay extends BdvOverlay
 		RealTransformSequence transformSequence = new RealTransformSequence();
 		transformSequence.add( spline );
 
-		//final AffineTransform3D t = new AffineTransform3D();
 		getCurrentTransform3D( transform );
 		transformSequence.add( transform );
+
+		samplingRate = (int) getSamplingRate();
+
+		grid = createGrid( lineDensity, numControlPointsT, numControlPointsS );
 
 		drawLines( g, transformSequence, grid );
 	}
