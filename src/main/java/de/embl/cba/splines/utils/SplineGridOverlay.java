@@ -12,7 +12,8 @@ import java.util.List;
 
 public class SplineGridOverlay extends BdvOverlay
 {
-	private final int numControlPoints;
+	private final int numControlPointsT;
+	private final int numControlPointsS;
 
 	private final SurfaceSplineToRealPointTransform spline;
 
@@ -23,28 +24,31 @@ public class SplineGridOverlay extends BdvOverlay
 	public SplineGridOverlay( int pointDensity, int m, double width, double height, double depth )
 	{
 		//this.spline = spline;
-		numControlPoints = m;
-		spline = new SurfaceSplineToRealPointTransform( m, width, height, depth );
-		grid = createGrid( pointDensity, numControlPoints );
+		numControlPointsT = m;
+		numControlPointsS = m;
+		spline = new SurfaceSplineToRealPointTransform( m, m, width, height, depth );
+		grid = createGrid( pointDensity, numControlPointsT, numControlPointsS );
 	}
 
-	private static List< List< RealPoint > > createGrid( int pointDensity, int numControlPoints )
+	private static List< List< RealPoint > > createGrid( int pointDensity, int numControlPointsT, int numControlPointsS )
 	{
 		List< List< RealPoint > > gridPoints = new ArrayList();
 
-		int numLines = pointDensity * numControlPoints;
+		int numLongitudes = pointDensity * (numControlPointsT);
 
-		for( int i = 0; i <= numLines; i++ )
+		for( int i = 0; i <= numLongitudes; i++ )
 		{
 			RealPoint xStartPoint = RealPoint.wrap( new double[] { i / (double) pointDensity, 0 } );
-			RealPoint xEndPoint = RealPoint.wrap( new double[] { i / (double) pointDensity, numControlPoints } );
+			RealPoint xEndPoint = RealPoint.wrap( new double[] { i / (double) pointDensity, numControlPointsS-1 } );
 			gridPoints.add( createGridPoints( xStartPoint, xEndPoint ) );
 		}
 
-		for( int i = 0; i <= numLines; i++ )
+		int numLatitudes = pointDensity * (numControlPointsS-1);
+
+		for( int i = 0; i <= numLatitudes; i++ )
 		{
 			RealPoint yStartPoint = RealPoint.wrap( new double[] { 0,  i / (double) pointDensity } );
-			RealPoint yEndPoint = RealPoint.wrap( new double[] { numControlPoints, i / (double) pointDensity} );
+			RealPoint yEndPoint = RealPoint.wrap( new double[] { numControlPointsT, i / (double) pointDensity} );
 			gridPoints.add( createGridPoints( yStartPoint, yEndPoint ) );
 		}
 		return gridPoints;

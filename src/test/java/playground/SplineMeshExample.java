@@ -9,9 +9,6 @@ import net.imglib2.img.Img;
 import net.imglib2.img.array.ArrayImgs;
 import net.imglib2.type.numeric.ARGBType;
 
-import de.embl.cba.splines.utils.SplineSphere;
-import de.embl.cba.splines.utils.SurfaceSplineToRealPointTransform;
-
 import java.util.Random;
 
 public class SplineMeshExample

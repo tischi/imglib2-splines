@@ -15,15 +15,15 @@ public class SurfaceSplineToRealPointTransform implements RealTransform
 	*/
 	final static int numParameters = 2;
 	final static int numDimensions = 3;
-	private final SplineSphere splineSphere;
+	private final ExponentialSplineSurface splineSphere;
 	private final double width;
 	private final double height;
 	private final double depth;
 
 
-	public SurfaceSplineToRealPointTransform( int m, double width, double height, double depth )
+	public SurfaceSplineToRealPointTransform( int Mt, int Ms, double width, double height, double depth )
 	{
-		splineSphere = new SplineSphere( m );
+		splineSphere = new ExponentialSplineSurface( Mt, Ms);
 		this.width = width;
 		this.height = height;
 		this.depth = depth;
@@ -66,7 +66,7 @@ public class SurfaceSplineToRealPointTransform implements RealTransform
 	@Override
 	public RealTransform copy()
 	{
-		return new SurfaceSplineToRealPointTransform( splineSphere.getM(), width, height, depth );
+		return new SurfaceSplineToRealPointTransform( splineSphere.getMt(), splineSphere.getMs(), width, height, depth );
 	}
 
 	public ArrayList<RealPoint> getControlPoints()

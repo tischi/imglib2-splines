@@ -201,7 +201,7 @@ public class ControlPointsOverlay implements OverlayRenderer, TransformListener<
 
 	private void setAllHighlighted( final boolean highlight )
 	{
-		if ( allHighlighted!=highlight && pointId>=0) {
+		if ( allHighlighted!=highlight ) {
 			allHighlighted=highlight;
 			highlightedPointListener.highlightedPointChanged();
 		}
@@ -231,10 +231,10 @@ public class ControlPointsOverlay implements OverlayRenderer, TransformListener<
 		@Override
 		public void mouseMoved( final MouseEvent e )
 		{
-			if(!allHighlighted) {
-				final int x = e.getX();
-				final int y = e.getY();
+			final int x = e.getX();
+			final int y = e.getY();
 
+			if(!allHighlighted) {
 				final int numPoints = renderPointsHelper.numPoints;
 				for (int i = 0; i < numPoints; i++) {
 					final double[] point = renderPointsHelper.projectedPoints[i];
@@ -246,13 +246,13 @@ public class ControlPointsOverlay implements OverlayRenderer, TransformListener<
 						return;
 					}
 				}
-				setHighlightedPoint(-1);
 			}
+				setHighlightedPoint(-1);
 		}
 
 		@Override
 		public void keyPressed(KeyEvent e) {
-			if(e.getKeyCode() == KeyEvent.VK_SHIFT)
+			if(e.getKeyCode() == KeyEvent.VK_SHIFT && pointId>=0)
 				setAllHighlighted(true);
 		}
 
