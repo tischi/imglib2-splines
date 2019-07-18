@@ -152,9 +152,4 @@ public class SplineGridOverlay extends BdvOverlay
 	{
 		return this.spline.getControlPoints();
 	}
-
-	public AffineTransform3D getAffineTransform3D()
-	{
-		return this.transform;
-	}
 }		
