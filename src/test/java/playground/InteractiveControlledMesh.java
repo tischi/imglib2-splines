@@ -30,7 +30,7 @@ public class InteractiveControlledMesh
 		final FinalInterval interval = new FinalInterval( new long[]{ 0, 0, 0 },
     													  new long[]{ 100, 100, 100 } );
     	final SplineGridOverlay splineOverlay = new SplineGridOverlay( 3,
-    																   6,
+    																   3,
     																   interval.dimension( 0 ),
     																   interval.dimension( 1 ),
     																   interval.dimension( 2 ) );    	

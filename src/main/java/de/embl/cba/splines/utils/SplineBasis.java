@@ -2,6 +2,8 @@ package de.embl.cba.splines.utils;
 
 public class SplineBasis {
 
+    public static enum BASIS{ LINEARBSPLINE, QUADRATICBSPLINE, CUBICBSPLINE, ESPLINE3, HSPLINE };
+
     /** Length of the support of the linear B-spline. */
     public static int LINEARBSPLINESUPPORT = 2;
 
@@ -21,6 +23,8 @@ public class SplineBasis {
      * Length of the support of Hermite splines.
      */
     public static int HSPLINESUPPORT = 2;
+
+    public static double EPS=1e-8;
 
     /** Linear B-spline. */
     public static double LinearBSpline(double t) {
@@ -216,6 +220,8 @@ public class SplineBasis {
         } else {
             EHSplineValue = G1(-x, alpha);
         }
+        if(Math.abs(EHSplineValue)<EPS)
+            EHSplineValue=0.0;
         return EHSplineValue;
     }
 
@@ -226,6 +232,8 @@ public class SplineBasis {
         } else {
             EHSplineValue = -1.0 * G2(-x, alpha);
         }
+        if(Math.abs(EHSplineValue)<EPS)
+            EHSplineValue=0.0;
         return EHSplineValue;
     }
 
@@ -260,6 +268,8 @@ public class SplineBasis {
         } else {
             EHSplinePrimeValue = -1.0 * G1Prime(-x, alpha);
         }
+        if(Math.abs(EHSplinePrimeValue)<EPS)
+            EHSplinePrimeValue=0.0;
         return EHSplinePrimeValue;
     }
 
@@ -270,6 +280,8 @@ public class SplineBasis {
         } else {
             EHSplinePrimeValue = G2Prime(-x, alpha);
         }
+        if(Math.abs(EHSplinePrimeValue)<EPS)
+            EHSplinePrimeValue=0.0;
         return EHSplinePrimeValue;
     }
 

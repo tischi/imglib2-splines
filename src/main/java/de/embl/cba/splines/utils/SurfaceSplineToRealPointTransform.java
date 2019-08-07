@@ -15,19 +15,19 @@ public class SurfaceSplineToRealPointTransform implements RealTransform
 	*/
 	final static int numParameters = 2;
 	final static int numDimensions = 3;
-	private final ExponentialSplineSurface splineSphere;
+	private final AbstractSplineSurface splineSurface;
 	private final double width;
 	private final double height;
 	private final double depth;
 
 
-	public SurfaceSplineToRealPointTransform( int Mt, int Ms, double width, double height, double depth )
+	public SurfaceSplineToRealPointTransform( AbstractSplineSurface spline, double width, double height, double depth )
 	{
-		splineSphere = new ExponentialSplineSurface( Mt, Ms);
+		splineSurface = spline;
 		this.width = width;
 		this.height = height;
 		this.depth = depth;
-		splineSphere.initializeDefaultShape( this.width, this.height, this.depth );
+		splineSurface.initializeDefaultShape( this.width, this.height, this.depth );
 	}
 
 	@Override
@@ -45,7 +45,7 @@ public class SurfaceSplineToRealPointTransform implements RealTransform
 	@Override
 	public void apply( double[] source, double[] target )
 	{
-		final RealPoint realPoint = splineSphere.parametersToWorld( source[ 0 ], source[ 1 ] );
+		final RealPoint realPoint = splineSurface.parametersToWorld( source[ 0 ], source[ 1 ] );
 
 		for ( int d = 0; d < numDimensions; d++ )
 			target[ d ] = realPoint.getDoublePosition( d );
@@ -55,7 +55,7 @@ public class SurfaceSplineToRealPointTransform implements RealTransform
 	@Override
 	public void apply( RealLocalizable source, RealPositionable target )
 	{
-		final RealPoint realPoint = splineSphere.parametersToWorld(
+		final RealPoint realPoint = splineSurface.parametersToWorld(
 				source.getDoublePosition( 0 ),
 				source.getDoublePosition( 1 ) );
 
@@ -66,11 +66,11 @@ public class SurfaceSplineToRealPointTransform implements RealTransform
 	@Override
 	public RealTransform copy()
 	{
-		return new SurfaceSplineToRealPointTransform( splineSphere.getMt(), splineSphere.getMs(), width, height, depth );
+		return new SurfaceSplineToRealPointTransform( splineSurface, width, height, depth );
 	}
 
 	public ArrayList<RealPoint> getControlPoints()
 	{
-		return splineSphere.getControlPoints();
+		return splineSurface.getControlPoints();
 	}
 }

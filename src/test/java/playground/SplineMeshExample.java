@@ -18,7 +18,7 @@ public class SplineMeshExample
     	final FinalInterval interval = new FinalInterval( new long[]{ 0, 0, 0 },
     													  new long[]{ 100, 100, 100 } );
 
-    	final BdvOverlay overlay = new SplineGridOverlay( 5, 6, interval.dimension(0), interval.dimension(1), interval.dimension(2) );
+    	final BdvOverlay overlay = new SplineGridOverlay( 5, 3, interval.dimension(0), interval.dimension(1), interval.dimension(2) );
     	final Bdv bdv3D = BdvFunctions.show( greenExampleImage(), "greens" );
     	BdvFunctions.showOverlay( overlay, "overlay", Bdv.options().addTo( bdv3D ) );
     }

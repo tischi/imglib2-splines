@@ -4,15 +4,7 @@ import net.imglib2.RealPoint;
 
 import java.util.ArrayList;
 
-public class ExponentialSplineSurface {
-    private int Ms;
-    private int Mt;
-    private RealPoint[] controlPoints;
-
-    private int nDim=3;
-    private double halfSupport=SplineBasis.ESPLINE3SUPPORT/2.0;
-    // TODO: would be nice to have the basis function is an argument here so it is more generic
-
+public class ExponentialSplineSurface extends AbstractSplineSurface{
     private final double PIMs;
     private final double PIMt;
     private final double scale;
@@ -20,32 +12,16 @@ public class ExponentialSplineSurface {
     private final double scaleMt;
 
     public ExponentialSplineSurface(int Mt, int Ms){
-        this.Mt = Mt;
-        if (Mt < 3) {
-            throw new IllegalArgumentException("Error: M needs to be equal or larger than 3 for longitudes.");
-        }
-        this.Ms = Ms;
-        if (Ms < 4) {
-            throw new IllegalArgumentException("Error: M needs to be equal or larger than 4 for latitudes.");
-        }
+        super(Mt,Ms,SplineBasis.BASIS.ESPLINE3);
 
         PIMt = Math.PI / Mt;
         PIMs = Math.PI / (Ms - 1);
 
         controlPoints = new RealPoint[Mt * (Ms - 2) + 6];
+
         scale = 1.0 / ((Ms-1) * SplineBasis.ESpline3Prime(1.0, PIMs));
         scaleMs = 2.0 * (1.0 - Math.cos(PIMs)) / (Math.cos(PIMs / 2) - Math.cos(3.0 * PIMs / 2));
         scaleMt = 2.0 * (1.0 - Math.cos(2.0 * PIMt)) / (Math.cos(PIMt) - Math.cos(3.0 * PIMt));
-    }
-
-    public int getMt()
-    {
-        return Mt;
-    }
-
-    public int getMs()
-    {
-        return Ms;
     }
 
     public void initializeDefaultShape( double radius, RealPoint center) {
@@ -57,11 +33,11 @@ public class ExponentialSplineSurface {
             for (int l = 1; l <= Ms - 2; l++) {
                 double theta = PIMs * l;
                 double phi = 2.0 * PIMt * k;
-
                 controlPoints[k + (l - 1) * Mt] = new RealPoint(x0 + radius * scaleMs * scaleMt * Math.sin(theta) * Math.cos(phi),
                         y0 + radius * scaleMs * scaleMt * Math.sin(theta) * Math.sin(phi), z0 + radius * scaleMs * Math.cos(theta));
             }
         }
+
         // north pole
         controlPoints[Mt * (Ms - 2)] = new RealPoint(x0, y0, z0 + radius);
         // south pole
@@ -72,11 +48,6 @@ public class ExponentialSplineSurface {
         // south tangent plane
         controlPoints[Mt * (Ms - 2) + 4] = new RealPoint(x0 + Math.PI * radius, y0, z0 - radius);
         controlPoints[Mt * (Ms - 2) + 5] = new RealPoint(x0, y0 + Math.PI * radius, z0 - radius);
-    }
-
-    public void initializeDefaultShape( double width, double height, double depth){
-        initializeDefaultShape( Math.min(Math.min(width / 5.0, height / 5.0),
-                depth / 5.0), new RealPoint (width / 2.0, height / 2.0, depth / 2.0));
     }
 
     public ArrayList<RealPoint> getControlPoints(){
@@ -95,8 +66,8 @@ public class ExponentialSplineSurface {
 
     public ArrayList<RealPoint> getSampledSurface(){
         // TODO: come up with an adaptive way to sample depending on the size of the patch (compute arclength)
-        int samplingRateS=2;
-        int samplingRateT=2;
+        int samplingRateS=20;
+        int samplingRateT=20;
 
         ArrayList<RealPoint> surface= new ArrayList<RealPoint>();
         for (int nt = 0; nt < Mt*samplingRateT; nt++) {
@@ -133,7 +104,7 @@ public class ExponentialSplineSurface {
         double sVal=s-(Ms-1)-1;
         if (sVal > -halfSupport && sVal < halfSupport) {
             for (int k = 0; k < Mt; k++) {
-                double tVal=wrapIndexT(t, k);
+                double tVal=wrapIndex(t, k, Mt);
                 if (tVal > -halfSupport && tVal < halfSupport) {
                     // compute c[k,M+1]
                     double[] ckMplus=new double[nDim];
@@ -154,7 +125,7 @@ public class ExponentialSplineSurface {
         sVal=s-(Ms-1);
         if (sVal > -halfSupport && sVal < halfSupport) {
             for (int k = 0; k < Mt; k++) {
-                double tVal=wrapIndexT(t, k);
+                double tVal=wrapIndex(t, k, Mt);
                 if (tVal > -halfSupport && tVal < halfSupport) {
                     // compute c[k,M+1]
                     double[] ckMplus=new double[nDim];
@@ -193,7 +164,7 @@ public class ExponentialSplineSurface {
         double sVal = s+1.0;
         if (sVal > -halfSupport && sVal < halfSupport ) {
             for (int k = 0; k < Mt; k++) {
-                double tVal=wrapIndexT(t, k);
+                double tVal=wrapIndex(t, k, Mt);
                 if (tVal > -halfSupport && tVal < halfSupport) {
                     // compute c[k,-1]
                     double[] ckminus1=new double[nDim];
@@ -213,7 +184,7 @@ public class ExponentialSplineSurface {
         sVal=s;
         if (sVal > -halfSupport && sVal < halfSupport) {
             for (int k = 0; k < Mt; k++) {
-                double tVal=wrapIndexT(t, k);
+                double tVal=wrapIndex(t, k, Mt);
                 if (tVal > -halfSupport && tVal < halfSupport) {
                     // compute c[k,-1]
                     double[] ckminus1=new double[nDim];
@@ -237,34 +208,21 @@ public class ExponentialSplineSurface {
         }
     }
 
-    private void addNonPoleContributions( double t, double s, RealPoint point )
-    {
+    private void addNonPoleContributions( double t, double s, RealPoint point ) {
         // Everything but the poles
         for (int l = 1; l <= Ms - 2; l++) {
-            double sVal = s-l;
+            double sVal = s - l;
             if (sVal > -halfSupport && sVal < halfSupport) {
                 for (int k = 0; k < Mt; k++) {
-                    double tVal=wrapIndexT(t, k);
-                    if (tVal > -halfSupport && tVal < halfSupport){
-                        double[] pointValue=new double[nDim];
-                        for(int d=0; d<nDim;d++)
-                            pointValue[d] = point.getDoublePosition(d) + controlPoints[k + (l - 1) * Mt].getDoublePosition(d) * SplineBasis.ESpline3(sVal,PIMs) * SplineBasis.ESpline3(tVal,2.0*PIMt);
+                    double tVal = wrapIndex(t, k, Mt);
+                    if (tVal > -halfSupport && tVal < halfSupport) {
+                        double[] pointValue = new double[nDim];
+                        for (int d = 0; d < nDim; d++)
+                            pointValue[d] = point.getDoublePosition(d) + controlPoints[k + (l - 1) * Mt].getDoublePosition(d) * SplineBasis.ESpline3(sVal, PIMs) * SplineBasis.ESpline3(tVal, 2.0 * PIMt);
                         point.setPosition(pointValue);
                     }
                 }
             }
         }
-    }
-
-    private double wrapIndexT(double t, int k){
-        double tVal=t-k;
-        if (k < t-halfSupport) {
-            if (k + Mt >= t - halfSupport && k + Mt <= t + halfSupport)
-                tVal = t - (k + Mt);
-        } else if (k > t+halfSupport) {
-            if (k - Mt >= t - halfSupport && k - Mt <= t + halfSupport)
-                tVal = t - (k - Mt);
-        }
-        return tVal;
     }
 }

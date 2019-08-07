@@ -25,8 +25,9 @@ public class SplineGridOverlay extends BdvOverlay
 	{
 		//this.spline = spline;
 		numControlPointsT = m;
-		numControlPointsS = m;
-		spline = new SurfaceSplineToRealPointTransform( m, m, width, height, depth );
+		numControlPointsS = m+1;
+		spline = new SurfaceSplineToRealPointTransform( new FirstOrderHermiteSplineSurface(numControlPointsT, numControlPointsS), width, height, depth );
+		//spline = new SurfaceSplineToRealPointTransform( new ExponentialSplineSurface(numControlPointsT, numControlPointsS), width, height, depth );
 		grid = createGrid( pointDensity, numControlPointsT, numControlPointsS );
 	}
 
